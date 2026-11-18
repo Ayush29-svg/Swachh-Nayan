@@ -1,0 +1,6 @@
+plastic_bottle
+plastic_bag
+aluminum_can
+styrofoam_cup
+organic_debris
+microplastic_fragment

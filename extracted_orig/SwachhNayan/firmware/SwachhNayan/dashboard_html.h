@@ -1,0 +1,144 @@
+#pragma once
+#include <Arduino.h>
+static const char DASHBOARD_HTML[] PROGMEM = R"SN_HTML(
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071614"><title>Swachh-Nayan | Drain Monitor</title>
+<style>
+:root{color-scheme:dark;--bg:#071614;--panel:#0d211e;--panel2:#102925;--line:#1c3b35;--text:#e8f5ef;--muted:#8ba79d;--green:#5de0a0;--mint:#b7f5d6;--amber:#f4bf62;--red:#fa7777;--blue:#79c9ef;--shadow:0 18px 50px #02090766}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 84% 0%,#15362d 0,transparent 35%),var(--bg);font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);min-height:100vh}.shell{max-width:1380px;margin:auto;padding:28px 34px 36px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid var(--line);padding-bottom:22px}.brand{display:flex;align-items:center;gap:13px}.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(145deg,#a7f5ce,#39bd80);display:grid;place-items:center;color:#09231a;box-shadow:0 8px 24px #45ca9250}.logo svg{width:25px}.brand-name{font-weight:760;letter-spacing:.13em;font-size:13px}.brand-sub{color:var(--muted);font-size:11px;letter-spacing:.11em;margin-top:2px}.top-meta{display:flex;align-items:center;gap:18px}.live{display:flex;align-items:center;gap:8px;color:var(--mint);font-size:12px;font-weight:650}.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}.pill{border:1px solid #36594f;border-radius:30px;padding:7px 11px;color:var(--muted);font-size:11px;letter-spacing:.06em}.hero{display:flex;justify-content:space-between;align-items:flex-end;padding:35px 0 22px}.eyebrow{color:var(--green);font-size:10px;letter-spacing:.2em;font-weight:700;text-transform:uppercase}.hero h1{font-size:clamp(27px,4vw,38px);line-height:1.1;letter-spacing:-.04em;margin:9px 0 8px}.hero p{margin:0;color:var(--muted);font-size:13px}.actions{display:flex;align-items:center;gap:9px}.btn{border:1px solid var(--line);background:var(--panel);color:var(--mint);border-radius:10px;padding:10px 13px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s ease}.btn:hover{background:var(--panel2);border-color:#3a6859}.updated{font-size:11px;color:var(--muted);margin-right:6px}.banner{display:none;border:1px solid #7d6030;background:#3b2d13;color:#ffe0a4;padding:10px 14px;border-radius:10px;margin-bottom:16px;font-size:12px}.banner.show{display:block}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{background:linear-gradient(150deg,#10231f,#0b1b19);border:1px solid var(--line);border-radius:15px;padding:18px;box-shadow:var(--shadow);min-height:154px;position:relative;overflow:hidden}.card:after{content:"";position:absolute;width:100px;height:100px;border-radius:50%;right:-40px;top:-48px;background:#4bc68d0b}.card-head{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase}.icon{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:#19392e;color:var(--green)}.icon svg{width:17px;height:17px}.metric{font-size:32px;line-height:1.1;font-weight:680;letter-spacing:-.05em;margin:19px 0 8px}.unit{font-size:13px;color:var(--muted);font-weight:500;letter-spacing:0}.sub{font-size:11px;color:var(--muted)}.status-text{font-size:23px;letter-spacing:-.03em}.good{color:var(--green)}.warn{color:var(--amber)}.bad{color:var(--red)}.neutral{color:#c7dad2}.lower{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.95fr);gap:14px;margin-top:14px}.col{display:grid;gap:14px}.panel{background:linear-gradient(150deg,#10231f,#0b1b19);border:1px solid var(--line);border-radius:15px;padding:19px;box-shadow:var(--shadow)}.panel-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}.panel-title h2{font-size:13px;margin:0;letter-spacing:.01em}.panel-title span{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}.chart-wrap{height:180px;position:relative}.chart{width:100%;height:100%;overflow:visible}.axis{stroke:#24423a;stroke-width:1}.chart-line{fill:none;stroke:var(--green);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px #52dc9b55)}.chart-area{fill:url(#fill)}.chart-label{fill:#76938a;font-size:9px}.chart-empty{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:12px}.cam-viewport{height:220px;background:#061412;border:1px solid var(--line);border-radius:10px;position:relative;overflow:hidden;display:grid;place-items:center}.cam-img{width:100%;height:100%;object-fit:cover;display:none}.cam-placeholder{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted);font-size:12px}.cam-meta{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:11px;color:var(--muted)}.status-list{display:grid;gap:0}.status-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #1b352f}.status-row:last-child{border:0}.row-name{font-size:12px;color:var(--muted)}.row-value{font-size:12px;font-weight:600}.state-pill{padding:4px 8px;border-radius:6px;background:#16362b;color:var(--green);font-size:10px;letter-spacing:.04em}.foot{display:flex;justify-content:space-between;gap:15px;color:#69867b;font-size:10px;padding:18px 3px 0}.foot strong{color:#9ab8aa;font-weight:550}.mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+@media(max-width:950px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lower{grid-template-columns:1fr}}@media(max-width:560px){.shell{padding:18px 15px 26px}.topbar{align-items:flex-start}.top-meta{gap:9px;flex-direction:column;align-items:flex-end}.hero{align-items:flex-start;gap:16px;flex-direction:column;padding:27px 0 18px}.actions{width:100%;justify-content:space-between}.grid{gap:9px}.card{padding:13px;min-height:139px}.metric{font-size:26px}.status-text{font-size:18px}.panel{padding:15px}.foot{flex-direction:column}.pill{font-size:9px}}
+</style>
+</head>
+<body><main class="shell">
+<header class="topbar"><div class="brand"><div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3C9 7.2 5.5 10.6 5.5 15a6.5 6.5 0 0 0 13 0C18.5 10.6 15 7.2 12 3Z"/><path d="M8.5 15.5c.2 1.8 1.3 2.8 3 3"/></svg></div><div><div class="brand-name">SWACHH-NAYAN</div><div class="brand-sub">SMART DRAIN MONITORING</div></div></div><div class="top-meta"><div class="live"><i class="dot" id="liveDot"></i><span id="connection">CONNECTING</span></div><div class="pill" id="modeBadge">DEVICE LINK · WAITING</div></div></header>
+<section class="hero"><div><div class="eyebrow">Field monitoring system</div><h1>Drain overview</h1><p>Live telemetry, camera snapshots, and hardware status from your ESP32-S3 controller.</p></div><div class="actions"><span class="updated" id="updated">Waiting for first reading</span><button class="btn" id="refresh">↻ &nbsp;Refresh</button></div></section>
+<div class="banner" id="banner"></div>
+<section class="grid">
+<article class="card"><div class="card-head"><span>Ultrasonic distance</span><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 9a11 11 0 0 1 16 0M7 12a7 7 0 0 1 10 0m-7 3a3 3 0 0 1 4 0M12 19h.01"/></svg></span></div><div class="metric mono" id="distance">— <span class="unit">cm</span></div><div class="sub" id="distanceSub">Waiting for sensor</div></article>
+<article class="card"><div class="card-head"><span>Water sensor</span><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3C9 7 5 10.7 5 15a7 7 0 0 0 14 0c0-4.3-4-8-7-12Z"/><path d="M8.5 15.5a3.5 3.5 0 0 0 3.5 3"/></svg></span></div><div class="metric status-text" id="water">UNAVAILABLE</div><div class="sub mono" id="waterSub">Raw ADC: — · calibration required</div></article>
+<article class="card"><div class="card-head"><span>Camera status</span><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="m7 6 1.5-2h7L17 6"/></svg></span></div><div class="metric status-text" id="camera">UNAVAILABLE</div><div class="sub" id="cameraSub">No camera frame received</div></article>
+<article class="card"><div class="card-head"><span>Waste classification</span><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 5h14v14H5zM9 9h6v6H9zM2 9V5a3 3 0 0 1 3-3h4m10 0h1a2 2 0 0 1 2 2v2m0 10v1a2 2 0 0 1-2 2h-2M5 22H4a2 2 0 0 1-2-2v-2"/></svg></span></div><div class="metric status-text" id="prediction">UNKNOWN</div><div class="sub" id="predictionSub">No validated model result</div></article>
+</section>
+<section class="lower">
+<div class="col">
+<article class="panel"><div class="panel-title"><h2>Distance history</h2><span>Recent samples</span></div><div class="chart-wrap"><svg class="chart" viewBox="0 0 700 180" preserveAspectRatio="none"><defs><linearGradient id="fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#5de0a0" stop-opacity=".22"/><stop offset="1" stop-color="#5de0a0" stop-opacity="0"/></linearGradient></defs><path class="axis" d="M42 18V155H690M42 50H690M42 85H690M42 120H690"/><text class="chart-label" x="4" y="21">400</text><text class="chart-label" x="10" y="53">300</text><text class="chart-label" x="10" y="88">200</text><text class="chart-label" x="10" y="123">100</text><text class="chart-label" x="22" y="158">0</text><path id="area" class="chart-area" d=""/><path id="line" class="chart-line" d=""/></svg><div class="chart-empty" id="chartEmpty">Distance history will appear when valid readings arrive.</div></div></article>
+<article class="panel"><div class="panel-title"><h2>Optical view / Camera snapshot</h2><button class="btn" id="snapBtn">📷 &nbsp;Take Snapshot</button></div><div class="cam-viewport" id="camViewport"><img id="camImg" class="cam-img" alt="ESP32-S3 Camera View" /><div class="cam-placeholder" id="camPlaceholder"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="m7 6 1.5-2h7L17 6"/></svg><span id="camPlaceholderText">Viewfinder waiting for camera frame</span></div></div><div class="cam-meta"><span id="camMetaInfo">Resolution: 320×240 (QVGA JPEG)</span><span id="camTime">—</span></div></article>
+</div>
+<article class="panel"><div class="panel-title"><h2>System health</h2><span id="statePill" class="state-pill">STARTING</span></div><div class="status-list"><div class="status-row"><span class="row-name">System state</span><span class="row-value" id="systemState">STARTUP</span></div><div class="status-row"><span class="row-name">Water calibration</span><span class="row-value" id="calibration">NOT SET</span></div><div class="status-row"><span class="row-name">MicroSD storage</span><span class="row-value mono" id="sdCard">CHECKING</span></div><div class="status-row"><span class="row-name">Servo actuator</span><span class="row-value" id="servo">SAFE / DISABLED</span></div><div class="status-row"><span class="row-name">Signal strength</span><span class="row-value mono" id="rssi">—</span></div><div class="status-row"><span class="row-name">Free memory</span><span class="row-value mono" id="heap">—</span></div><div class="status-row"><span class="row-name">Uptime</span><span class="row-value mono" id="uptime">—</span></div></div></article>
+</section>
+<footer class="foot"><span><strong>Swachh-Nayan</strong> · ESP32-S3-N16R8 edge monitoring</span><span>SD Card auto-logs telemetry CSV and captures alert images on waste/obstruction events.</span></footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);let history=[];let demoIndex=0;let hadDevice=false;let lastCamPoll=0;
+const demoSamples=[
+{distance:84,water:"DRY",raw:1094,state:"MONITORING"},
+{distance:82,water:"DRY",raw:1093,state:"MONITORING"},
+{distance:78,water:"WET",raw:1682,state:"MONITORING"},
+{distance:41,water:"WET",raw:1711,state:"POSSIBLE_OBSTRUCTION"},
+{distance:43,water:"WET",raw:1699,state:"POSSIBLE_OBSTRUCTION"},
+{distance:79,water:"DRY",raw:1095,state:"MONITORING"}
+];
+function setText(id,text){const el=$(id);if(el)el.textContent=text}
+function demoData(){
+let d=demoSamples[demoIndex++%demoSamples.length];
+return{
+mode:"DEMO",state:d.state,
+distanceValid:true,distanceCm:d.distance,
+waterValid:true,waterRaw:d.raw,waterWet:d.water==="WET",waterCalibrated:true,
+cameraReady:true,cameraError:"OK",
+prediction:"UNKNOWN",predictionConfidence:0,predictionValid:false,predictionMock:false,inferenceMs:0,
+sdMounted:true,sdTotalMB:15190,sdUsedMB:12,sdSnapshots:4,sdError:"OK",
+servoActive:false,actuatorEnabled:false,
+uptimeMs:demoIndex*2000,freeHeap:302000,rssi:-54
+}}
+
+function updateCameraView(ready,isDemo){
+const img=$("camImg");const ph=$("camPlaceholder");const phText=$("camPlaceholderText");
+if(!ready){img.style.display="none";ph.style.display="flex";phText.textContent="Camera not ready or unconfigured";return}
+if(isDemo){
+img.style.display="none";ph.style.display="flex";
+phText.textContent="[DEMO VIEW] Simulated drain camera active (OV2640)";
+setText("camMetaInfo","Mode: Simulated (Connect device for live JPEG)");
+setText("camTime","Updated "+new Date().toLocaleTimeString());
+return
+}
+img.style.display="block";ph.style.display="none";
+img.src="/api/camera/snapshot?t="+Date.now();
+setText("camMetaInfo","Source: OV2640 Hardware (320×240 JPEG)");
+setText("camTime","Captured "+new Date().toLocaleTimeString());
+}
+
+function render(x){
+const demo=x.mode==="MOCK"||x.mode==="DEMO";
+setText("modeBadge",demo?(x.mode+" DATA · SIMULATED"):"DEVICE LINK · LIVE");
+setText("connection",demo?"DEMO MODE":"DEVICE ONLINE");
+$("liveDot").style.background=demo?"#f4bf62":"#5de0a0";
+$("liveDot").style.boxShadow=demo?"0 0 12px #f4bf62":"0 0 12px #5de0a0";
+$("banner").classList.toggle("show",demo);
+if(demo)setText("banner","DEMO DATA — simulated values only. Connect to an ESP32-S3 device to view live telemetry and camera frames.");
+else $("banner").textContent="";
+
+setText("distance",x.distanceValid?Number(x.distanceCm).toFixed(1)+" cm":"UNAVAILABLE");
+setText("distanceSub",x.distanceValid?"Filtered ultrasonic reading (GPIO 41/42)":"Check HC-SR04 connection / echo timeout");
+setText("water",!x.waterValid?"UNAVAILABLE":x.waterCalibrated?(x.waterWet?"WET":"DRY"):"UNCALIBRATED");
+setText("waterSub",`Raw ADC: ${x.waterValid?x.waterRaw:"—"} · ${x.waterCalibrated?"calibrated":"calibration required"}`);
+setText("camera",x.cameraReady?"READY":"UNAVAILABLE");
+setText("cameraSub",x.cameraReady?"OV2640 active (QVGA JPEG)":(x.cameraError||"Camera not configured"));
+setText("prediction",x.predictionValid?x.prediction:"UNKNOWN");
+setText("predictionSub",x.predictionValid?`${x.predictionMock?"MOCK · ":""}${(x.predictionConfidence*100).toFixed(0)}% confidence · ${x.inferenceMs} ms`:"No validated model result");
+
+setText("systemState",x.state||"UNKNOWN");
+setText("statePill",(x.state||"UNKNOWN").replaceAll("_"," "));
+setText("calibration",x.waterCalibrated?"READY":"NOT SET");
+
+if(x.sdMounted){
+let freeMb=x.sdTotalMB>x.sdUsedMB?(x.sdTotalMB-x.sdUsedMB):0;
+setText("sdCard",`${(freeMb/1024).toFixed(1)} GB free · ${x.sdSnapshots||0} snaps`);
+}else{
+setText("sdCard",x.sdError==="NO_CARD"?"NO CARD INSERTED":"MOUNT FAILED");
+}
+
+setText("servo",x.servoActive?"ACTIVE":x.actuatorEnabled?"SAFE":"SAFE / DISABLED");
+setText("rssi",x.rssi==null?"—":`${x.rssi} dBm`);
+setText("heap",x.freeHeap==null?"—":`${Math.round(x.freeHeap/1024)} KB`);
+setText("uptime",formatTime(x.uptimeMs||0));
+setText("updated","Updated "+new Date().toLocaleTimeString());
+
+if(x.distanceValid){history.push(Number(x.distanceCm));if(history.length>40)history.shift();drawChart()}
+if(x.cameraReady&&!demo&&(Date.now()-lastCamPoll>6000)){lastCamPoll=Date.now();updateCameraView(true,false)}
+else if(demo&&lastCamPoll===0){lastCamPoll=Date.now();updateCameraView(true,true)}
+}
+
+function formatTime(ms){let s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60;return h?`${h}h ${m}m`:`${m}m ${r}s`}
+function drawChart(){
+let vals=history;if(vals.length<2){$("chartEmpty").style.display="grid";return}$("chartEmpty").style.display="none";
+let pts=vals.map((v,i)=>{let x=42+i*(648/(vals.length-1)),y=155-(Math.min(400,Math.max(0,v))/400)*137;return [x,y]});
+let d=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+$("line").setAttribute("d",d);
+$("area").setAttribute("d",d+` L ${pts.at(-1)[0]} 155 L ${pts[0][0]} 155 Z`);
+}
+
+async function poll(){
+if(new URLSearchParams(location.search).get("demo")==="1"){render(demoData());return}
+try{
+let r=await fetch("/api/status",{cache:"no-store",signal:AbortSignal.timeout(1800)});
+if(!r.ok)throw Error("HTTP "+r.status);
+let data=await r.json();
+if(data.mode!=="MOCK"&&data.mode!=="DEMO")hadDevice=true;
+render(data);
+}catch(e){
+setText("connection",hadDevice?"DEVICE LINK LOST":"DEVICE OFFLINE · DEMO");
+$("liveDot").style.background="#fa7777";
+if(!hadDevice){render(demoData());setText("connection","DEVICE OFFLINE · DEMO");}
+else{setText("modeBadge","DEVICE LINK · STALE");$("banner").classList.add("show");setText("banner","Device connection lost. Displaying the last received reading; values are no longer updating.");}
+}}
+
+$("snapBtn").onclick=()=>{updateCameraView(true,false)};
+$("refresh").onclick=poll;
+poll();
+setInterval(poll,2000);
+</script></body></html>
+
+)SN_HTML";

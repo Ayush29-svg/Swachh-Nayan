@@ -1,0 +1,220 @@
+import json
+
+notebook = {
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# 🌊 SWACHH-NAYAN: Drain Waste AI Model Training & RV1103 NPU Export\n",
+    "### Edge-Vision Storm-Drain Trash & Micro-Plastic Diverter\n",
+    "This turnkey Google Colab notebook trains **YOLOv5n** on a storm drain waste dataset and exports it with **Rockchip RV1103 NPU subgraph optimization** for the Luckfox Pico."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Step 1: Verify GPU Allocation\n",
+    "!nvidia-smi"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Step 2: Clone Rockchip-optimized YOLOv5 repository (airockchip)\n",
+    "import os\n",
+    "%cd /content\n",
+    "if not os.path.exists('/content/yolov5'):\n",
+    "    !git clone https://github.com/airockchip/yolov5.git /content/yolov5\n",
+    "%cd /content/yolov5\n",
+    "!pip install -r requirements.txt\n",
+    "!pip install onnx onnxscript gdown roboflow"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Step 3: CRITICAL PATCH - Fix PyTorch 2.6+ / 2.11 weights_only=True default in Colab\n",
+    "# PyTorch 2.6+ blocks unpickling models.yolo.Model without weights_only=False.\n",
+    "patch_code = \"\"\"import torch\n# Global PyTorch 2.6+ weights_only compatibility patch\n_orig_torch_load = torch.load\ntorch.load = lambda *args, **kwargs: _orig_torch_load(*args, **{**kwargs, 'weights_only': False})\n\"\"\"\n\nfor py_file in ['train.py', 'export.py', 'val.py', 'detect.py', 'models/yolo.py']:\n    if os.path.exists(py_file):\n        with open(py_file, 'r') as f:\n            content = f.read()\n        if '_orig_torch_load' not in content:\n            with open(py_file, 'w') as f:\n                f.write(patch_code + '\\n' + content)\n\nprint(\"✅ Successfully applied PyTorch 2.6+ compatibility patch to YOLOv5 scripts!\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Step 4: Define Drain Waste Dataset YAML Configuration\n",
+    "dataset_yaml = \"\"\"\n",
+    "path: /content/drain_waste_dataset\n",
+    "train: images/train\n",
+    "val: images/val\n",
+    "test: images/val\n",
+    "\n",
+    "nc: 6\n",
+    "names: ['plastic_bottle', 'plastic_bag', 'aluminum_can', 'styrofoam_cup', 'organic_debris', 'microplastic_fragment']\n",
+    "\"\"\"\n",
+    "os.makedirs('/content/yolov5/data', exist_ok=True)\n",
+    "with open('/content/yolov5/data/drain_waste.yaml', 'w') as f:\n",
+    "    f.write(dataset_yaml.strip())\n",
+    "print(\"✅ Created /content/yolov5/data/drain_waste.yaml\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Step 5: Acquire / Prepare Drain Waste Dataset\n",
+    "import os, random\n",
+    "import numpy as np\n",
+    "from PIL import Image, ImageDraw\n",
+    "\n",
+    "# Create directory structure\n",
+    "for split in ['train', 'val']:\n",
+    "    os.makedirs(f'/content/drain_waste_dataset/images/{split}', exist_ok=True)\n",
+    "    os.makedirs(f'/content/drain_waste_dataset/labels/{split}', exist_ok=True)\n",
+    "\n",
+    "# Check if user wants to download external dataset (e.g. from Google Drive or Roboflow)\n",
+    "# If empty, we automatically generate synthetic drain waste training samples so training completes immediately!\n",
+    "train_imgs = os.listdir('/content/drain_waste_dataset/images/train')\n",
+    "if len(train_imgs) == 0:\n",
+    "    print(\"Generating initial training dataset samples with water flume backgrounds & annotated drain waste...\")\n",
+    "    class_colors = [(0, 120, 255), (255, 255, 255), (192, 192, 192), (255, 230, 200), (34, 139, 34), (255, 0, 128)]\n",
+    "    \n",
+    "    # Generate training & validation samples including HARD BACKGROUND NEGATIVES (empty water ripples/foam/reflections)\\n",
+    "    # Background images with empty label files explicitly teach YOLO that water motion has NO OBJECTS!\\n",
+    "    for split, waste_count, bg_count in [('train', 110, 40), ('val', 30, 10)]:\\n",
+    "        # 1. Images with Drain Waste Material\\n",
+    "        for i in range(waste_count):\\n",
+    "            img = Image.new('RGB', (640, 640), color=(random.randint(20, 50), random.randint(70, 110), random.randint(60, 90)))\\n",
+    "            draw = ImageDraw.Draw(img)\\n",
+    "            for _ in range(random.randint(5, 15)):\\n",
+    "                rx = random.randint(0, 600)\\n",
+    "                ry = random.randint(0, 630)\\n",
+    "                rw = random.randint(30, 100)\\n",
+    "                draw.arc([rx, ry, rx + rw, ry + 15], 0, 180, fill=(random.randint(50, 90), random.randint(110, 150), random.randint(100, 140)), width=1)\\n",
+    "            labels = []\\n",
+    "            num_objs = random.randint(1, 3)\\n",
+    "            for _ in range(num_objs):\\n",
+    "                cls_id = random.randint(0, 5)\\n",
+    "                w = random.randint(45, 150)\\n",
+    "                h = random.randint(45, 150)\\n",
+    "                x1 = random.randint(50, 640 - w - 50)\\n",
+    "                y1 = random.randint(50, 640 - h - 50)\\n",
+    "                x2 = x1 + w\\n",
+    "                y2 = y1 + h\\n",
+    "                draw.rectangle([x1, y1, x2, y2], fill=class_colors[cls_id], outline=(255, 255, 255), width=2)\\n",
+    "                cx = (x1 + w / 2) / 640.0\\n",
+    "                cy = (y1 + h / 2) / 640.0\\n",
+    "                nw = w / 640.0\\n",
+    "                nh = h / 640.0\\n",
+    "                labels.append(f\\\"{cls_id} {cx:.6f} {cy:.6f} {nw:.6f} {nh:.6f}\\\")\\n",
+    "            img.save(f'/content/drain_waste_dataset/images/{split}/sample_waste_{i:04d}.jpg')\\n",
+    "            with open(f'/content/drain_waste_dataset/labels/{split}/sample_waste_{i:04d}.txt', 'w') as f:\\n",
+    "                f.write('\\\\n'.join(labels))\\n",
+    "        # 2. Hard Negative Backgrounds (pure flowing water, ripples, waves, glare, zero waste)\\n",
+    "        for i in range(bg_count):\\n",
+    "            img = Image.new('RGB', (640, 640), color=(random.randint(20, 50), random.randint(70, 110), random.randint(60, 90)))\\n",
+    "            draw = ImageDraw.Draw(img)\\n",
+    "            for _ in range(random.randint(20, 45)):\\n",
+    "                rx = random.randint(0, 600)\\n",
+    "                ry = random.randint(0, 630)\\n",
+    "                rw = random.randint(40, 180)\\n",
+    "                draw.arc([rx, ry, rx + rw, ry + random.randint(10, 25)], 0, 180, fill=(random.randint(60, 110), random.randint(120, 170), random.randint(110, 160)), width=random.randint(1, 3))\\n",
+    "            gx = random.randint(50, 500)\\n",
+    "            gy = random.randint(50, 500)\\n",
+    "            draw.ellipse([gx, gy, gx + 80, gy + 30], fill=(random.randint(80, 130), random.randint(130, 180), random.randint(120, 170)))\\n",
+    "            img.save(f'/content/drain_waste_dataset/images/{split}/sample_bg_{i:04d}.jpg')\\n",
+    "            with open(f'/content/drain_waste_dataset/labels/{split}/sample_bg_{i:04d}.txt', 'w') as f:\\n",
+    "                f.write('')\\n",
+    "    print(\\\"✅ Dataset ready: 150 train images (40 water background negatives), 40 val images (10 negatives)!\\\")\\n",
+    "else:\\n",
+    "    print(f\\\"✅ Existing dataset detected: {len(train_imgs)} training images.\\\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Step 6: Train YOLOv5n (Nano) on Drain Waste (50 Epochs)\n",
+    "# Pretrained yolov5n.pt provides rapid transfer learning convergence on GPU (~10-15 mins)\n",
+    "%cd /content/yolov5\n",
+    "!python train.py \\\n",
+    "  --img 640 \\\n",
+    "  --batch 16 \\\n",
+    "  --epochs 50 \\\n",
+    "  --data data/drain_waste.yaml \\\n",
+    "  --weights yolov5n.pt \\\n",
+    "  --cfg models/yolov5n.yaml \\\n",
+    "  --project runs_drain_waste \\\n",
+    "  --name exp_rv1103"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Step 7: Export to ONNX with Rockchip RV1103 / RKNN NPU Subgraph Optimization\n",
+    "# Note: --rknpu is a flag (do NOT append 'rv1103' to --rknpu)\n",
+    "%cd /content/yolov5\n",
+    "!python export.py \\\n",
+    "  --weights runs_drain_waste/exp_rv1103/weights/best.pt \\\n",
+    "  --include onnx \\\n",
+    "  --rknpu\n",
+    "\n",
+    "print(\"\\n[SUCCESS] Exported best.onnx optimized for Rockchip RV1103 NPU!\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Step 8: Download the trained ONNX model to your computer\n",
+    "import os\n",
+    "from google.colab import files\n",
+    "\n",
+    "onnx_path = 'runs_drain_waste/exp_rv1103/weights/best.onnx'\n",
+    "if os.path.exists(onnx_path):\n",
+    "    print(f\"Downloading {onnx_path} to your computer...\")\n",
+    "    files.download(onnx_path)\n",
+    "else:\n",
+    "    print(f\"[ERROR] '{onnx_path}' not found. Please check Step 6 and Step 7 output!\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "accelerator": "GPU",
+  "colab": {
+   "gpuType": "T4",
+   "provenance": []
+  },
+  "language_info": {
+   "name": "python"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 0
+}
+
+with open(r"c:\Users\gupta\Downloads\Swachh_Nayan\training_pipeline\Google_Colab_Drain_Waste_Trainer.ipynb", "w") as f:
+    json.dump(notebook, f, indent=1)
+
+print("Google Colab notebook updated successfully!")

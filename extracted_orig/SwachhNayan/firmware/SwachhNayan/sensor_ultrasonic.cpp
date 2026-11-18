@@ -1,0 +1,5 @@
+#include "sensor_ultrasonic.h"
+#include "config.h"
+void UltrasonicSensor::begin(uint8_t trig,uint8_t echo){trigPin=trig;echoPin=echo;pinMode(trigPin,OUTPUT);digitalWrite(trigPin,LOW);pinMode(echoPin,INPUT);}
+void UltrasonicSensor::update(uint32_t now){if(now-last<Config::DISTANCE_PERIOD_MS)return;last=now;digitalWrite(trigPin,LOW);delayMicroseconds(2);digitalWrite(trigPin,HIGH);delayMicroseconds(10);digitalWrite(trigPin,LOW);uint32_t us=pulseIn(echoPin,HIGH,Config::ECHO_TIMEOUT_US);current.timestamp=now;if(!us){current.valid=false;return;}float cm=us*0.0343f/2.0f;if(cm<Config::DISTANCE_MIN_CM||cm>Config::DISTANCE_MAX_CM){current.valid=false;return;}samples[cursor]=cm;cursor=(cursor+1)%Config::DISTANCE_MEDIAN_N;if(count<Config::DISTANCE_MEDIAN_N)count++;float sorted[5];for(uint8_t i=0;i<count;i++)sorted[i]=samples[i];for(uint8_t i=0;i<count;i++)for(uint8_t j=i+1;j<count;j++)if(sorted[j]<sorted[i]){float t=sorted[i];sorted[i]=sorted[j];sorted[j]=t;}current.cm=sorted[count/2];current.valid=count>=3;}
+DistanceReading UltrasonicSensor::reading()const{return current;}

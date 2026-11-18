@@ -1,0 +1,21 @@
+553-                            <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#94a3b8;">
+554-                                <span>ADS1115 A0 Channel</span>
+555-                                <span id="waterPct" style="font-weight:bold; color:#fff;">0%</span>
+556-                            </div>
+557-                        </div>
+558-
+559-                        <!-- Actuators State -->
+560-                        <div class="metric-card">
+561-                            <span class="metric-label">12V Water Pump</span>
+562-                            <div class="metric-value text-green" id="pumpStatus">ON</div>
+563:                            <span class="metric-desc">5V Relay (Pin 5 / GPIO54)</span>
+564-                        </div>
+565-
+566-                        <div class="metric-card">
+567-                            <span class="metric-label">MG996R Diverter Gate</span>
+568-                            <div class="metric-value" id="gateStatus">NORMAL</div>
+569-                            <span class="metric-desc">Pin 4 / Rockchip Hardware PWM11</span>
+570-                        </div>
+571-                    </div>
+572-                </div>
+573-

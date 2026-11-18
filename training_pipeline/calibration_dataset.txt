@@ -1,0 +1,7 @@
+/mnt/c/Users/gupta/Downloads/Swachh_Nayan/training_pipeline/calibration_images/calib_0.jpg
+/mnt/c/Users/gupta/Downloads/Swachh_Nayan/training_pipeline/calibration_images/calib_1.jpg
+/mnt/c/Users/gupta/Downloads/Swachh_Nayan/training_pipeline/calibration_images/calib_2.jpg
+/mnt/c/Users/gupta/Downloads/Swachh_Nayan/training_pipeline/calibration_images/calib_3.jpg
+/mnt/c/Users/gupta/Downloads/Swachh_Nayan/training_pipeline/calibration_images/calib_4.jpg
+/mnt/c/Users/gupta/Downloads/Swachh_Nayan/training_pipeline/calibration_images/calib_5.jpg
+/mnt/c/Users/gupta/Downloads/Swachh_Nayan/training_pipeline/calibration_images/calib_6.jpg

@@ -1,0 +1,19 @@
+# Swachh-Nayan: Storm-Drain Waste Object Detection Dataset Config
+# Optimized for Rockchip RV1103 NPU (YOLOv5n Architecture)
+
+path: ./dataset/drain_waste  # dataset root dir
+train: images/train          # train images (relative to 'path')
+val: images/val              # val images (relative to 'path')
+test: images/test            # test images (optional)
+
+# Number of classes
+nc: 6
+
+# Class names tailored for storm drain & canal waste diversion
+names:
+  0: plastic_bottle
+  1: plastic_bag
+  2: aluminum_can
+  3: styrofoam_cup
+  4: organic_debris
+  5: microplastic_fragment

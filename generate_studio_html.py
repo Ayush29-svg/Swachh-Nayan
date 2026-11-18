@@ -1,0 +1,1633 @@
+import os
+
+html_content = r'''<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SWACHH-NAYAN LIVE AI | Industrial Studio Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #080c14;
+            --surface-1: #0f172a;
+            --surface-2: #1e293b;
+            --surface-3: #27354f;
+            --border: rgba(56, 189, 248, 0.16);
+            --border-hover: rgba(56, 189, 248, 0.4);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-cyan: #06b6d4;
+            --accent-blue: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.25);
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-alert: #ef4444;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 1px 1px rgba(255, 255, 255, 0.05);
+            --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="light"] {
+            --bg-base: #f1f5f9;
+            --surface-1: #ffffff;
+            --surface-2: #f8fafc;
+            --surface-3: #e2e8f0;
+            --border: rgba(15, 23, 42, 0.12);
+            --border-hover: rgba(56, 189, 248, 0.6);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --accent-glow: rgba(56, 189, 248, 0.15);
+            --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 0 1px 1px rgba(0, 0, 0, 0.05);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 16px 24px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* App Container */
+        .dashboard-container {
+            max-width: 1560px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Top Header */
+        .studio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px 24px;
+            box-shadow: var(--shadow-card);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .brand-logo {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+        }
+        .brand-logo svg {
+            width: 26px;
+            height: 26px;
+            fill: #ffffff;
+        }
+        .brand-title {
+            font-size: 1.45rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #f8fafc, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        [data-theme="light"] .brand-title {
+            background: linear-gradient(90deg, #0f172a, #0284c7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .brand-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .badge-chip {
+            background: rgba(56, 189, 248, 0.14);
+            color: var(--accent-blue);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .header-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .connection-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            padding: 8px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--color-success);
+            box-shadow: 0 0 10px var(--color-success);
+            animation: pulseLed 1.8s infinite;
+        }
+        @keyframes pulseLed {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .btn-icon {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition-smooth);
+            font-size: 0.82rem;
+        }
+        .btn-icon:hover {
+            border-color: var(--border-hover);
+            background: var(--surface-3);
+        }
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: var(--color-alert);
+        }
+        .btn-danger:hover {
+            background: var(--color-alert);
+            color: white;
+        }
+
+        /* Main Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 12fr;
+            gap: 20px;
+        }
+        @media (min-width: 1100px) {
+            .hero-split-grid {
+                display: grid;
+                grid-template-columns: 7.5fr 4.5fr;
+                gap: 20px;
+            }
+            .controls-split-grid {
+                display: grid;
+                grid-template-columns: 6fr 6fr;
+                gap: 20px;
+            }
+            .telemetry-split-grid {
+                display: grid;
+                grid-template-columns: 7fr 5fr;
+                gap: 20px;
+            }
+        }
+
+        /* Generic Card Styles */
+        .studio-card {
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-card);
+            transition: var(--transition-smooth);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        .studio-card:hover {
+            border-color: var(--border-hover);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-icon {
+            font-size: 1.15rem;
+            color: var(--accent-blue);
+        }
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+        }
+        .status-pill {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            font-family: var(--font-mono);
+            letter-spacing: 0.5px;
+        }
+        .status-idle { background: rgba(16, 185, 129, 0.15); color: var(--color-success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-active { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); border: 1px solid rgba(6, 182, 212, 0.3); }
+        .status-warn { background: rgba(245, 158, 11, 0.15); color: var(--color-warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-alert { background: rgba(239, 68, 68, 0.15); color: var(--color-alert); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        /* Camera Viewport */
+        .camera-viewport {
+            position: relative;
+            width: 100%;
+            height: 440px;
+            background: #000000;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .camera-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            transition: opacity 0.2s ease;
+        }
+        .camera-overlay-top {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .camera-overlay-badge {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            pointer-events: auto;
+        }
+        .camera-overlay-bottom {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .camera-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .camera-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .rate-selector {
+            display: flex;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 2px;
+        }
+        .rate-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+        .rate-btn.active {
+            background: var(--accent-blue);
+            color: #000000;
+        }
+
+        /* Servo Visualizations & Dial */
+        .servo-viz-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        @media (max-width: 650px) {
+            .servo-viz-container { grid-template-columns: 1fr; }
+        }
+        .viz-box {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .viz-label {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* SVG Dial */
+        .dial-svg {
+            width: 170px;
+            height: 110px;
+            margin-top: 12px;
+        }
+        .dial-track { fill: none; stroke: var(--surface-3); stroke-width: 12; stroke-linecap: round; }
+        .dial-progress {
+            fill: none;
+            stroke: url(#cyanGrad);
+            stroke-width: 12;
+            stroke-linecap: round;
+            stroke-dasharray: 251.2;
+            stroke-dashoffset: 251.2;
+            transition: stroke-dashoffset 0.35s ease;
+        }
+        .dial-needle {
+            stroke: var(--accent-cyan);
+            stroke-width: 3.5;
+            stroke-linecap: round;
+            transform-origin: 90px 85px;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .dial-value-text {
+            font-family: var(--font-mono);
+            font-size: 1.45rem;
+            font-weight: 800;
+            fill: var(--text-primary);
+            text-anchor: middle;
+        }
+
+        /* Channel Gate Graphic */
+        .channel-svg {
+            width: 100%;
+            height: 110px;
+            margin-top: 12px;
+        }
+
+        /* Controls Form & Sliders */
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .control-label {
+            flex: 0 0 120px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .slider-flex {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .studio-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            outline: none;
+        }
+        .studio-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            cursor: pointer;
+            box-shadow: 0 0 12px var(--accent-blue);
+            transition: transform 0.1s;
+        }
+        .studio-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+        .num-input {
+            width: 75px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 6px 10px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+        }
+
+        .presets-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .preset-btn {
+            flex: 1;
+            min-width: 55px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 6px;
+            border-radius: var(--radius-sm);
+            font-size: 0.78rem;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+        .preset-btn:hover {
+            background: var(--surface-3);
+            color: var(--text-primary);
+            border-color: var(--border-hover);
+        }
+
+        /* DC Motor Power Card */
+        .motor-hero-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .turbine-graphic {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .turbine-rotor {
+            width: 100px;
+            height: 100px;
+            transition: transform 0.5s ease;
+        }
+        .turbine-running {
+            animation: spinTurbine 1.0s linear infinite;
+        }
+        @keyframes spinTurbine {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .motor-switch-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .rocker-toggle {
+            position: relative;
+            width: 140px;
+            height: 52px;
+            background: var(--surface-3);
+            border: 2px solid var(--border);
+            border-radius: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 4px;
+            transition: var(--transition-smooth);
+        }
+        .rocker-toggle.on {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--color-success);
+        }
+        .rocker-thumb {
+            width: 44px;
+            height: 44px;
+            background: #94a3b8;
+            border-radius: 50%;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        .rocker-toggle.on .rocker-thumb {
+            transform: translateX(88px);
+            background: var(--color-success);
+            box-shadow: 0 0 16px var(--color-success);
+        }
+        .btn-action-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .btn-action {
+            flex: 1;
+            padding: 12px 18px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition-smooth);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #0284c7, #06b6d4);
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.45);
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        .btn-secondary:hover {
+            background: var(--surface-3);
+            border-color: var(--border-hover);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: #ffffff;
+        }
+        .btn-muted {
+            background: #334155;
+            color: #cbd5e1;
+        }
+
+        /* Progress Bar */
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: var(--surface-3);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #06b6d4, #10b981);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Metric Counters */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .metric-cell {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            text-align: center;
+        }
+        .metric-title {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .metric-value {
+            font-family: var(--font-mono);
+            font-size: 1.55rem;
+            font-weight: 800;
+            margin: 4px 0 2px 0;
+            color: var(--accent-blue);
+        }
+        .metric-sub {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* Terminal Activity Log */
+        .log-terminal {
+            background: #04070d;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            height: 180px;
+            overflow-y: auto;
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            color: #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .log-entry { display: flex; gap: 8px; }
+        .log-time { color: var(--text-muted); }
+        .log-tag { font-weight: bold; border-radius: 3px; padding: 0 4px; }
+        .tag-servo { color: var(--accent-cyan); }
+        .tag-motor { color: var(--color-success); }
+        .tag-vision { color: #a855f7; }
+        .tag-sys { color: var(--accent-blue); }
+        .tag-err { color: var(--color-alert); }
+
+        /* Toast Container */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            color: var(--text-primary);
+            padding: 12px 18px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideInToast 0.3s ease;
+        }
+        @keyframes slideInToast {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <!-- Dashboard Header -->
+        <header class="studio-header">
+            <div class="header-brand">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="brand-title">SWACHH-NAYAN LIVE AI</h1>
+                    <div class="brand-subtitle">
+                        <span>LUCKFOX PICO RV1103</span>
+                        <span class="badge-chip">0.5T NPU</span>
+                        <span class="badge-chip">SC3336 3MP</span>
+                        <span class="badge-chip">HW PWM11</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-meta">
+                <div class="connection-pill" id="connPill">
+                    <span class="pulse-dot" id="connDot"></span>
+                    <span id="connLabel">PICO CONNECTED (172.32.0.93)</span>
+                </div>
+                <button class="btn-icon" onclick="toggleTheme()" title="Toggle Light/Dark Theme">
+                    <span id="themeIcon">☀️</span> <span id="themeLabel">Light</span>
+                </button>
+                <button class="btn-icon btn-danger" onclick="emergencyPark()" title="Stop all motors and return servo to 0°">
+                    <span>🛑</span> <span>PARK ALL</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Layout Section -->
+        <main class="dashboard-grid">
+            
+            <!-- Hero Top Row: Live AI Camera (Left) + Primary Counters (Right) -->
+            <section class="hero-split-grid">
+                
+                <!-- Camera Feed Card -->
+                <div class="studio-card">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <span class="card-icon">📷</span>
+                            <h2 class="card-title">Live SC3336 3MP Camera & AI Vision Feed</h2>
+                        </div>
+                        <span class="status-pill status-idle" id="camStatusPill">STREAM ONLINE</span>
+                    </div>
+
+                    <div class="camera-viewport" id="camViewport">
+                        <div class="camera-overlay-top">
+                            <div class="camera-overlay-badge">
+                                <span class="pulse-dot" style="background:#ef4444; box-shadow:0 0 8px #ef4444;"></span>
+                                <span>LIVE SC3336 3MP</span>
+                            </div>
+                            <div class="camera-overlay-badge" id="aiInferenceBadge">
+                                <span>AI: YOLOv5n INT8 (RV1103 NPU)</span>
+                            </div>
+                        </div>
+
+                        <img id="liveCamImg" class="camera-img" src="/snapshot.bmp" alt="Luckfox Pico MIPI CSI Feed" onerror="onCameraImgError()" />
+
+                        <div class="camera-overlay-bottom">
+                            <div class="camera-overlay-badge" id="fpsLatencyBadge">
+                                <span>4.7 FPS | 212 ms</span>
+                            </div>
+                            <div class="camera-overlay-badge" id="frameTimeBadge">
+                                <span>Frame: Syncing...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="camera-toolbar">
+                        <div class="camera-buttons">
+                            <button class="btn-icon" onclick="manualRefreshSnapshot()">
+                                <span>🔄</span> Refresh Snapshot
+                            </button>
+                            <button class="btn-icon" id="btnPauseStream" onclick="toggleStreamPause()">
+                                <span>⏸</span> Pause Feed
+                            </button>
+                            <button class="btn-icon" onclick="toggleFullscreen()">
+                                <span>⛶</span> Fullscreen
+                            </button>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">REFRESH RATE:</span>
+                            <div class="rate-selector">
+                                <button class="rate-btn active" id="rate250" onclick="setRefreshInterval(250)">250ms</button>
+                                <button class="rate-btn" id="rate500" onclick="setRefreshInterval(500)">500ms</button>
+                                <button class="rate-btn" id="rate1000" onclick="setRefreshInterval(1000)">1s</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Operational Metrics & Auto-Divert -->
+                <div style="display:flex; flex-direction:column; gap:20px;">
+                    <!-- Trash Collection Counter Card -->
+                    <div class="studio-card">
+                        <div class="card-header">
+                            <div class="card-title-group">
+                                <span class="card-icon">♻️</span>
+                                <h3 class="card-title">Waste Collection Telemetry</h3>
+                            </div>
+                            <button class="btn-icon" onclick="resetTrashCounter()" style="padding:4px 8px; font-size:0.75rem;">
+                                <span>↺</span> Reset
+                            </button>
+                        </div>
+
+                        <div class="metrics-grid">
+                            <div class="metric-cell">
+                                <div class="metric-title">Diverted Items</div>
+                                <div class="metric-value" id="trashCountDisplay">0</div>
+                                <div class="metric-sub">Verified Pieces</div>
+                            </div>
+                            <div class="metric-cell">
+                                <div class="metric-title">Estimated Mass</div>
+                                <div class="metric-value" id="massDisplay" style="color:var(--color-success);">0.00 kg</div>
+                                <div class="metric-sub">Plastics Captured</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:16px;">
+                            <div style="display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:6px;">
+                                <span style="color:var(--text-secondary); font-weight:600;">Water Level (HC-SR04)</span>
+                                <span id="waterDepthTxt" style="font-family:var(--font-mono); font-weight:bold; color:var(--accent-cyan);">6.0 cm (Normal)</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill" id="waterProgress" style="width: 25%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Auto Divert & PWM Architecture Card -->
+                    <div class="studio-card" style="flex:1;">
+                        <div class="card-header">
+                            <div class="card-title-group">
+                                <span class="card-icon">⚙️</span>
+                                <h3 class="card-title">Auto-Divert & Edge NPU Mode</h3>
+                            </div>
+                            <span class="status-pill status-active" id="autoModePill">MANUAL STANDBY</span>
+                        </div>
+
+                        <div style="display:flex; align-items:center; justify-content:space-between; background:var(--surface-2); padding:14px; border-radius:var(--radius-md); border:1px solid var(--border);">
+                            <div>
+                                <div style="font-weight:700; font-size:0.9rem;">Edge AI Auto-Diversion</div>
+                                <div style="font-size:0.75rem; color:var(--text-secondary);">Switches flap automatically when NPU detects trash</div>
+                            </div>
+                            <button class="btn-action btn-secondary" id="btnToggleAuto" onclick="toggleAutoDivert()" style="max-width:130px; padding:8px 14px;">
+                                <span>🛡️</span> <span id="autoBtnText">ARM AUTO</span>
+                            </button>
+                        </div>
+
+                        <div style="margin-top:16px; font-size:0.78rem; color:var(--text-secondary); display:flex; flex-direction:column; gap:8px;">
+                            <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border); padding-bottom:6px;">
+                                <span>Hardware PWM Chip:</span>
+                                <span style="font-family:var(--font-mono); color:var(--accent-blue);">pwmchip11 (Pin 4)</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border); padding-bottom:6px;">
+                                <span>PWM Period & Freq:</span>
+                                <span style="font-family:var(--font-mono); color:var(--accent-blue);">20,000,000 ns (50.0 Hz)</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between;">
+                                <span>Current Pulse Duty:</span>
+                                <span style="font-family:var(--font-mono); color:var(--color-success);" id="pwmDutyTxt">1,000,000 ns (1.000 ms)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Middle Section: Dedicated Servo Motor Control & Dedicated DC Motor Control -->
+            <section class="controls-split-grid">
+                
+                <!-- 1. Dedicated Servo Motor Control Panel -->
+                <div class="studio-card">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <span class="card-icon">🎛️</span>
+                            <h2 class="card-title">MG996R Servo Flap Control Panel</h2>
+                        </div>
+                        <span class="status-pill status-idle" id="servoOpStatusPill">IDLE (0.0°)</span>
+                    </div>
+
+                    <!-- Dual Servo Visualizations -->
+                    <div class="servo-viz-container">
+                        <!-- Left: Radial Angle Gauge -->
+                        <div class="viz-box">
+                            <span class="viz-label">Angular Position</span>
+                            <svg class="dial-svg" viewBox="0 0 180 110">
+                                <defs>
+                                    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#0284c7" />
+                                        <stop offset="100%" stop-color="#06b6d4" />
+                                    </linearGradient>
+                                </defs>
+                                <!-- Background Arc (0 to 180 deg) -->
+                                <path class="dial-track" d="M 20 90 A 70 70 0 0 1 160 90" />
+                                <!-- Progress Arc -->
+                                <path id="dialProgressPath" class="dial-progress" d="M 20 90 A 70 70 0 0 1 160 90" />
+                                <!-- Pointer Needle -->
+                                <line id="dialNeedle" class="dial-needle" x1="90" y1="85" x2="25" y2="85" />
+                                <circle cx="90" cy="85" r="7" fill="var(--accent-blue)" />
+                                <!-- Center readout -->
+                                <text id="dialAngleText" class="dial-value-text" x="90" y="70">0°</text>
+                            </svg>
+                            <div style="font-size:0.7rem; color:var(--text-muted); margin-top:-6px; font-family:var(--font-mono);">
+                                Confirmed: <b id="confirmedAngleVal" style="color:var(--accent-blue);">0.0°</b> | Commanded: <b id="commandedAngleVal">0.0°</b>
+                            </div>
+                        </div>
+
+                        <!-- Right: Physical Gate Cross-Section -->
+                        <div class="viz-box">
+                            <span class="viz-label">Storm-Drain Gate Simulation</span>
+                            <svg class="channel-svg" viewBox="0 0 200 110">
+                                <!-- Water Canal Borders -->
+                                <rect x="10" y="25" width="180" height="60" rx="6" fill="#0c1929" stroke="var(--border)" stroke-width="1.5"/>
+                                <!-- Flow stream ripples -->
+                                <path d="M 20 45 Q 40 40 60 45 T 100 45 T 140 45" fill="none" stroke="rgba(56, 189, 248, 0.3)" stroke-width="2"/>
+                                <path d="M 25 65 Q 45 60 65 65 T 105 65 T 145 65" fill="none" stroke="rgba(56, 189, 248, 0.3)" stroke-width="2"/>
+                                <!-- Diverter Chute opening (top right) -->
+                                <path d="M 130 25 L 175 10" stroke="#f59e0b" stroke-width="3" stroke-dasharray="4,3"/>
+                                <text x="140" y="18" fill="#f59e0b" font-size="8" font-family="var(--font-mono)">COLLECTION CHUTE</text>
+                                <!-- Flow direction arrow -->
+                                <text x="25" y="80" fill="var(--text-muted)" font-size="9" font-family="var(--font-mono)">FLOW &gt;&gt;&gt;</text>
+                                <!-- Movable Gate Flap attached to pivot (130, 85) -->
+                                <g id="gateFlapG" transform="rotate(0, 130, 85)">
+                                    <line x1="130" y1="85" x2="130" y2="28" stroke="#ef4444" stroke-width="5" stroke-linecap="round"/>
+                                    <circle cx="130" cy="85" r="5" fill="#f8fafc"/>
+                                </g>
+                            </svg>
+                            <div style="font-size:0.7rem; color:var(--text-muted); margin-top:-6px; font-family:var(--font-mono);">
+                                Flap State: <b id="flapVisualState" style="color:var(--color-success);">CLOSED (FLOW NORMAL)</b>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Target Angle Slider & Numeric Input -->
+                    <div class="control-row">
+                        <label class="control-label" for="servoAngleInput">Target Angle (°):</label>
+                        <div class="slider-flex">
+                            <input type="range" class="studio-slider" id="servoAngleSlider" min="0" max="180" value="90" oninput="onSliderInput(this.value)">
+                            <input type="number" class="num-input" id="servoAngleInput" min="0" max="180" value="90" oninput="onNumInput(this.value)">
+                        </div>
+                    </div>
+
+                    <!-- Quick Preset Angle Buttons -->
+                    <div class="presets-row">
+                        <button class="preset-btn" onclick="selectPresetAngle(0)">0° (Closed)</button>
+                        <button class="preset-btn" onclick="selectPresetAngle(45)">45° (Quarter)</button>
+                        <button class="preset-btn" onclick="selectPresetAngle(90)">90° (Divert)</button>
+                        <button class="preset-btn" onclick="selectPresetAngle(135)">135° (Wide)</button>
+                        <button class="preset-btn" onclick="selectPresetAngle(180)">180° (Max)</button>
+                    </div>
+
+                    <!-- Auto-Return Configuration Controls -->
+                    <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px; margin-bottom:16px;">
+                        <div style="font-size:0.8rem; font-weight:700; color:var(--accent-blue); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                            <span>AUTOMATIC RETURN WORKFLOW SETTINGS</span>
+                            <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:0.75rem; color:var(--text-primary);">
+                                <input type="checkbox" id="autoReturnCheck" checked style="accent-color:var(--accent-blue); transform:scale(1.15);">
+                                Auto-Return Enabled
+                            </label>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                            <div>
+                                <label style="font-size:0.75rem; color:var(--text-secondary); display:block; margin-bottom:4px;">Home/Rest Angle (°)</label>
+                                <input type="number" class="num-input" id="homeAngleInput" min="0" max="180" value="0" style="width:100%;">
+                            </div>
+                            <div>
+                                <label style="font-size:0.75rem; color:var(--text-secondary); display:block; margin-bottom:4px;">Hold Duration (sec)</label>
+                                <input type="number" class="num-input" id="holdDurationInput" min="0.5" max="30" step="0.5" value="2.5" style="width:100%;">
+                            </div>
+                        </div>
+
+                        <div class="progress-bar-container" style="margin-top:12px;">
+                            <div class="progress-bar-fill" id="servoWorkflowProgress"></div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="btn-action-row">
+                        <button class="btn-action btn-primary" id="btnMoveServo" onclick="executeServoMotionWorkflow()">
+                            <span>▶</span> MOVE SERVO
+                        </button>
+                        <button class="btn-action btn-secondary" onclick="returnServoHome()">
+                            <span>🏠</span> RETURN HOME
+                        </button>
+                        <button class="btn-action btn-secondary" onclick="forceServoClose()">
+                            <span>🔒</span> 0° CLOSE
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Dedicated DC Motor Control Panel -->
+                <div class="studio-card">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <span class="card-icon">⚡</span>
+                            <h2 class="card-title">12V DC Motor / Pump Control</h2>
+                        </div>
+                        <span class="status-pill status-active" id="motorStatusPill">RUNNING (ON)</span>
+                    </div>
+
+                    <!-- Turbine Hero Box with Rotating Impeller -->
+                    <div class="motor-hero-box">
+                        <div class="turbine-graphic">
+                            <svg class="turbine-rotor turbine-running" id="turbineSvg" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="46" fill="none" stroke="var(--border)" stroke-width="2"/>
+                                <!-- 6-Blade Industrial Impeller -->
+                                <g fill="url(#cyanGrad)">
+                                    <path d="M 50 50 C 45 30 35 20 50 8 C 55 20 52 35 50 50 Z"/>
+                                    <path d="M 50 50 C 70 45 80 35 92 50 C 80 55 65 52 50 50 Z"/>
+                                    <path d="M 50 50 C 55 70 65 80 50 92 C 45 80 48 65 50 50 Z"/>
+                                    <path d="M 50 50 C 30 55 20 65 8 50 C 20 45 35 48 50 50 Z"/>
+                                </g>
+                                <circle cx="50" cy="50" r="14" fill="#1e293b" stroke="var(--accent-blue)" stroke-width="3"/>
+                                <circle cx="50" cy="50" r="5" fill="#f8fafc"/>
+                            </svg>
+                        </div>
+
+                        <div class="motor-switch-group">
+                            <div class="rocker-toggle on" id="motorRocker" onclick="toggleDcMotorFromRocker()" title="Click to toggle DC Motor power">
+                                <div class="rocker-thumb">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="#ffffff">
+                                        <path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="motorStatusTxt" style="font-weight:700; font-size:0.95rem; color:var(--color-success); font-family:var(--font-mono);">
+                                MOTOR CONFIRMED: ON
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Discrete ON / OFF Buttons -->
+                    <div class="btn-action-row" style="margin-bottom:16px;">
+                        <button class="btn-action btn-success" id="btnMotorOn" onclick="setDcMotorState('ON')">
+                            <span>⚡</span> SWITCH MOTOR ON
+                        </button>
+                        <button class="btn-action btn-muted" id="btnMotorOff" onclick="setDcMotorState('OFF')">
+                            <span>🛑</span> SWITCH MOTOR OFF
+                        </button>
+                    </div>
+
+                    <!-- Hardware Circuitry & Safety Details -->
+                    <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px; font-size:0.78rem; color:var(--text-secondary); display:flex; flex-direction:column; gap:8px;">
+                        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border); padding-bottom:6px;">
+                            <span>Hardware Interface:</span>
+                            <span style="font-family:var(--font-mono); color:var(--accent-blue);">Pin 5 / GPIO54 (5V Optocoupler Relay)</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border); padding-bottom:6px;">
+                            <span>Power Supply Bus:</span>
+                            <span style="font-family:var(--font-mono); color:var(--text-primary);">12V DC (5A Regulated Adapter)</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border); padding-bottom:6px;">
+                            <span>Dry-Run Interlock:</span>
+                            <span style="font-family:var(--font-mono); color:var(--color-success);">ARMED (Auto-cutout if empty)</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span>Last Motor Command:</span>
+                            <span style="font-family:var(--font-mono); color:var(--text-primary);" id="motorLastCmdTxt">Initialized Active (12V Flowing)</span>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Bottom Section: Real-Time Event Audit Log -->
+            <section class="studio-card">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <span class="card-icon">📋</span>
+                        <h3 class="card-title">Live Hardware Audit Trail & Activity Log</h3>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-icon" onclick="clearActivityLog()" style="padding:4px 8px; font-size:0.75rem;">
+                            <span>🗑️</span> Clear Log
+                        </button>
+                    </div>
+                </div>
+
+                <div class="log-terminal" id="activityLogBox">
+                    <div class="log-entry">
+                        <span class="log-time">[BOOT]</span>
+                        <span class="log-tag tag-sys">[SYSTEM]</span>
+                        <span>SWACHH-NAYAN Live Studio UI Initialized. Connected to Luckfox Pico at 172.32.0.93.</span>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // System Configuration
+        let PICO_IP = window.location.hostname === "172.32.0.93" ? "172.32.0.93" : (window.location.hostname || "172.32.0.93");
+        let PICO_PORT = window.location.port === "8088" ? "8088" : "8088";
+        let BASE_URL = window.location.protocol + "//" + PICO_IP + ":" + PICO_PORT;
+        if (window.location.protocol === "file:") {
+            BASE_URL = "http://172.32.0.93:8088";
+        }
+
+        // State Machine
+        let isServoBusy = false;
+        let isMotorBusy = false;
+        let isStreamPaused = false;
+        let streamRefreshMs = 250;
+        let streamTimer = null;
+        let telemetryTimer = null;
+        let confirmedServoAngle = 0.0;
+        let commandedServoAngle = 90.0;
+        let confirmedMotorState = "ON";
+
+        // Initialization
+        window.addEventListener("DOMContentLoaded", () => {
+            initStream();
+            startTelemetryPolling();
+            updateServoVisuals(0.0);
+            logEvent("SYS", "Hardware polling worker connected to port 8088.");
+        });
+
+        // Theme Switcher
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute("data-theme") || "dark";
+            const next = current === "dark" ? "light" : "dark";
+            html.setAttribute("data-theme", next);
+            document.getElementById("themeIcon").innerText = next === "dark" ? "☀️" : "🌙";
+            document.getElementById("themeLabel").innerText = next === "dark" ? "Light" : "Dark";
+        }
+
+        // Toast Notifications
+        function showToast(message, type = "info") {
+            const container = document.getElementById("toastContainer");
+            const toast = document.createElement("div");
+            toast.className = "toast";
+            const icons = { info: "ℹ️", success: "✅", warn: "⚠️", error: "❌" };
+            toast.innerHTML = `<span>${icons[type] || "ℹ️"}</span><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                toast.style.transform = "translateX(100%)";
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        // Activity Logger
+        function logEvent(tag, message) {
+            const logBox = document.getElementById("activityLogBox");
+            const entry = document.createElement("div");
+            entry.className = "log-entry";
+            const now = new Date().toTimeString().split(" ")[0];
+            const tagClasses = {
+                SERVO: "tag-servo",
+                MOTOR: "tag-motor",
+                VISION: "tag-vision",
+                SYS: "tag-sys",
+                ERR: "tag-err"
+            };
+            entry.innerHTML = `<span class="log-time">[${now}]</span><span class="log-tag ${tagClasses[tag] || "tag-sys"}">[${tag}]</span><span>${message}</span>`;
+            logBox.appendChild(entry);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function clearActivityLog() {
+            document.getElementById("activityLogBox").innerHTML = "";
+            logEvent("SYS", "Activity log cleared.");
+        }
+
+        // Camera Feed Pipeline (Dual-Buffer Smooth Refresh)
+        function initStream() {
+            if (streamTimer) clearInterval(streamTimer);
+            if (isStreamPaused) return;
+
+            streamTimer = setInterval(() => {
+                refreshCameraFrame();
+            }, streamRefreshMs);
+        }
+
+        function refreshCameraFrame() {
+            if (isStreamPaused) return;
+            const img = document.getElementById("liveCamImg");
+            const nextImg = new Image();
+            const timestamp = Date.now();
+            nextImg.src = BASE_URL + "/snapshot.bmp?t=" + timestamp;
+            nextImg.onload = () => {
+                img.src = nextImg.src;
+                document.getElementById("camStatusPill").innerText = "STREAM ONLINE";
+                document.getElementById("camStatusPill").className = "status-pill status-idle";
+                const d = new Date(timestamp);
+                document.getElementById("frameTimeBadge").innerText = "Frame: " + d.toTimeString().split(" ")[0] + "." + String(d.getMilliseconds()).padStart(3, '0');
+            };
+            nextImg.onerror = () => {
+                onCameraImgError();
+            };
+        }
+
+        function manualRefreshSnapshot() {
+            refreshCameraFrame();
+            showToast("Camera frame refreshed", "info");
+        }
+
+        function toggleStreamPause() {
+            isStreamPaused = !isStreamPaused;
+            const btn = document.getElementById("btnPauseStream");
+            if (isStreamPaused) {
+                if (streamTimer) clearInterval(streamTimer);
+                btn.innerHTML = "<span>▶</span> Resume Feed";
+                document.getElementById("camStatusPill").innerText = "PAUSED";
+                document.getElementById("camStatusPill").className = "status-pill status-warn";
+                showToast("Live camera feed paused", "warn");
+            } else {
+                btn.innerHTML = "<span>⏸</span> Pause Feed";
+                initStream();
+                showToast("Live camera feed resumed", "info");
+            }
+        }
+
+        function setRefreshInterval(ms) {
+            streamRefreshMs = ms;
+            document.querySelectorAll(".rate-btn").forEach(b => b.classList.remove("active"));
+            if (ms === 250) document.getElementById("rate250").classList.add("active");
+            if (ms === 500) document.getElementById("rate500").classList.add("active");
+            if (ms === 1000) document.getElementById("rate1000").classList.add("active");
+            initStream();
+        }
+
+        function toggleFullscreen() {
+            const vp = document.getElementById("camViewport");
+            if (!document.fullscreenElement) {
+                vp.requestFullscreen().catch(err => alert("Fullscreen error: " + err.message));
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function onCameraImgError() {
+            document.getElementById("camStatusPill").innerText = "CONNECTING...";
+            document.getElementById("camStatusPill").className = "status-pill status-alert";
+        }
+
+        // Servo Dial & Visual Gauge Helpers
+        function updateServoVisuals(angle) {
+            const clamped = Math.max(0, Math.min(180, parseFloat(angle)));
+            // Arc progress (total arc is 251.2)
+            const arcFrac = clamped / 180.0;
+            const offset = 251.2 * (1.0 - arcFrac);
+            document.getElementById("dialProgressPath").style.strokeDashoffset = offset;
+            
+            // Needle rotation: from 0 deg (needle at 0° which is pointing left/down) to 180 deg
+            // Base needle x1=90 y1=85 x2=25 y2=85 (pointing 180° in standard math, or 0° of dial)
+            document.getElementById("dialNeedle").style.transform = `rotate(${clamped}deg)`;
+            document.getElementById("dialAngleText").textContent = Math.round(clamped) + "°";
+            document.getElementById("confirmedAngleVal").textContent = clamped.toFixed(1) + "°";
+
+            // Update physical gate cross-section flap rotation
+            document.getElementById("gateFlapG").setAttribute("transform", `rotate(${clamped}, 130, 85)`);
+            const flapState = document.getElementById("flapVisualState");
+            if (clamped < 10) {
+                flapState.innerText = "CLOSED (FLOW NORMAL)";
+                flapState.style.color = "var(--color-success)";
+            } else if (clamped > 60) {
+                flapState.innerText = `DIVERTING ACTIVE (${Math.round(clamped)}°)`;
+                flapState.style.color = "var(--color-alert)";
+            } else {
+                flapState.innerText = `PARTIAL (${Math.round(clamped)}°)`;
+                flapState.style.color = "var(--color-warning)";
+            }
+        }
+
+        function onSliderInput(val) {
+            commandedServoAngle = parseFloat(val);
+            document.getElementById("servoAngleInput").value = val;
+            document.getElementById("commandedAngleVal").textContent = parseFloat(val).toFixed(1) + "°";
+        }
+
+        function onNumInput(val) {
+            let v = parseFloat(val);
+            if (isNaN(v)) v = 0;
+            v = Math.max(0, Math.min(180, v));
+            commandedServoAngle = v;
+            document.getElementById("servoAngleSlider").value = v;
+            document.getElementById("commandedAngleVal").textContent = v.toFixed(1) + "°";
+        }
+
+        function selectPresetAngle(ang) {
+            onSliderInput(ang);
+            showToast(`Target angle set to ${ang}°`, "info");
+        }
+
+        // Servo Motor Control: Complete Validated Workflow
+        async function executeServoMotionWorkflow() {
+            if (isServoBusy) {
+                showToast("Servo motion already in progress! Please wait.", "warn");
+                return;
+            }
+
+            const target = Math.max(0, Math.min(180, parseFloat(document.getElementById("servoAngleInput").value)));
+            const home = Math.max(0, Math.min(180, parseFloat(document.getElementById("homeAngleInput").value)));
+            const holdSec = Math.max(0.2, Math.min(30, parseFloat(document.getElementById("holdDurationInput").value)));
+            const autoReturn = document.getElementById("autoReturnCheck").checked;
+
+            isServoBusy = true;
+            document.getElementById("btnMoveServo").disabled = true;
+            document.getElementById("servoOpStatusPill").innerText = `MOVING TO ${target}°`;
+            document.getElementById("servoOpStatusPill").className = "status-pill status-active";
+            logEvent("SERVO", `Initiating motion: Target=${target}°, Home=${home}°, Hold=${holdSec}s, AutoReturn=${autoReturn}`);
+
+            try {
+                // 1. Send Target Angle Command to Backend
+                const res = await fetch(BASE_URL + "/api/set_servo_angle", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ angle: target })
+                });
+
+                if (!res.ok) throw new Error("Hardware rejected angle command");
+
+                confirmedServoAngle = target;
+                updateServoVisuals(target);
+                showToast(`Servo moved to ${target}°`, "success");
+
+                if (autoReturn) {
+                    // 2. Holding Phase with Animated Progress Bar
+                    document.getElementById("servoOpStatusPill").innerText = `HOLDING (${holdSec}s)`;
+                    document.getElementById("servoOpStatusPill").className = "status-pill status-warn";
+                    logEvent("SERVO", `Holding position at ${target}° for ${holdSec}s...`);
+
+                    const prog = document.getElementById("servoWorkflowProgress");
+                    prog.style.width = "0%";
+                    const startT = Date.now();
+                    const holdMs = holdSec * 1000;
+
+                    await new Promise(resolve => {
+                        const interval = setInterval(() => {
+                            const elapsed = Date.now() - startT;
+                            const pct = Math.min(100, (elapsed / holdMs) * 100);
+                            prog.style.width = pct + "%";
+                            if (elapsed >= holdMs) {
+                                clearInterval(interval);
+                                resolve();
+                            }
+                        }, 50);
+                    });
+
+                    // 3. Return to Home Phase
+                    document.getElementById("servoOpStatusPill").innerText = `RETURNING TO ${home}°`;
+                    document.getElementById("servoOpStatusPill").className = "status-pill status-active";
+                    logEvent("SERVO", `Auto-Return triggered: Moving back to home position ${home}°...`);
+
+                    const retRes = await fetch(BASE_URL + "/api/set_servo_angle", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ angle: home })
+                    });
+
+                    if (!retRes.ok) throw new Error("Hardware failed on return command");
+
+                    confirmedServoAngle = home;
+                    updateServoVisuals(home);
+                    showToast(`Servo returned home to ${home}°`, "success");
+                    logEvent("SERVO", `Servo successfully returned home to ${home}°. Cycle complete.`);
+                }
+            } catch (err) {
+                showToast("Servo Error: " + err.message, "error");
+                logEvent("ERR", "Servo motion failure: " + err.message);
+            } finally {
+                isServoBusy = false;
+                document.getElementById("btnMoveServo").disabled = false;
+                document.getElementById("servoWorkflowProgress").style.width = "0%";
+                document.getElementById("servoOpStatusPill").innerText = `IDLE (${confirmedServoAngle.toFixed(1)}°)`;
+                document.getElementById("servoOpStatusPill").className = "status-pill status-idle";
+            }
+        }
+
+        async function returnServoHome() {
+            if (isServoBusy) return;
+            const home = Math.max(0, Math.min(180, parseFloat(document.getElementById("homeAngleInput").value)));
+            try {
+                await fetch(BASE_URL + "/api/set_servo_angle", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ angle: home })
+                });
+                confirmedServoAngle = home;
+                updateServoVisuals(home);
+                showToast(`Servo returned home to ${home}°`, "success");
+                logEvent("SERVO", `Manual Return Home executed: position=${home}°`);
+            } catch (err) {
+                showToast("Return Home failed: " + err.message, "error");
+            }
+        }
+
+        async function forceServoClose() {
+            try {
+                await fetch(BASE_URL + "/api/force_close", { method: "POST" });
+                confirmedServoAngle = 0.0;
+                updateServoVisuals(0.0);
+                showToast("Servo closed to 0°", "info");
+                logEvent("SERVO", "Force close executed: 0.0°");
+            } catch (e) {
+                showToast("Force close error", "error");
+            }
+        }
+
+        // DC Motor Control Workflow (ON / OFF / Toggle)
+        async function setDcMotorState(targetState) {
+            if (isMotorBusy) return;
+            isMotorBusy = true;
+
+            const pill = document.getElementById("motorStatusPill");
+            const txt = document.getElementById("motorStatusTxt");
+            pill.innerText = "COMMANDING...";
+            pill.className = "status-pill status-warn";
+            txt.innerText = `SWITCHING TO: ${targetState}...`;
+            txt.style.color = "var(--color-warning)";
+
+            logEvent("MOTOR", `Command sent: Turn DC Motor ${targetState} (Relay Pin 5 / GPIO54)`);
+
+            try {
+                // If toggling or explicitly setting state
+                let res;
+                if (targetState !== confirmedMotorState) {
+                    res = await fetch(BASE_URL + "/api/toggle_pump", { method: "POST" });
+                } else {
+                    res = { ok: true };
+                }
+
+                if (res.ok) {
+                    confirmedMotorState = targetState;
+                    applyMotorVisualState(targetState);
+                    showToast(`12V DC Motor confirmed: ${targetState}`, "success");
+                    logEvent("MOTOR", `12V DC Motor successfully confirmed ${targetState}.`);
+                    document.getElementById("motorLastCmdTxt").innerText = `Switched ${targetState} at ` + new Date().toTimeString().split(" ")[0];
+                } else {
+                    throw new Error("Relay controller response error");
+                }
+            } catch (err) {
+                showToast("Motor Control Error: " + err.message, "error");
+                logEvent("ERR", "DC Motor toggle error: " + err.message);
+                applyMotorVisualState(confirmedMotorState);
+            } finally {
+                isMotorBusy = false;
+            }
+        }
+
+        function toggleDcMotorFromRocker() {
+            const next = confirmedMotorState === "ON" ? "OFF" : "ON";
+            setDcMotorState(next);
+        }
+
+        function applyMotorVisualState(state) {
+            const rocker = document.getElementById("motorRocker");
+            const pill = document.getElementById("motorStatusPill");
+            const txt = document.getElementById("motorStatusTxt");
+            const turbine = document.getElementById("turbineSvg");
+
+            if (state === "ON") {
+                rocker.classList.add("on");
+                pill.innerText = "RUNNING (ON)";
+                pill.className = "status-pill status-active";
+                txt.innerText = "MOTOR CONFIRMED: ON";
+                txt.style.color = "var(--color-success)";
+                turbine.classList.add("turbine-running");
+            } else {
+                rocker.classList.remove("on");
+                pill.innerText = "STOPPED (OFF)";
+                pill.className = "status-pill status-idle";
+                txt.innerText = "MOTOR CONFIRMED: OFF";
+                txt.style.color = "var(--text-muted)";
+                turbine.classList.remove("turbine-running");
+            }
+        }
+
+        // Auto-Divert Toggle
+        async function toggleAutoDivert() {
+            try {
+                const res = await fetch(BASE_URL + "/api/toggle_auto_divert", { method: "POST" });
+                const d = await res.json();
+                const isAuto = d.auto_divert;
+                updateAutoDivertUi(isAuto);
+                showToast("Auto-divert mode: " + (isAuto ? "ARMED" : "STANDBY"), "info");
+                logEvent("SYS", "Auto-Divert mode switched to: " + (isAuto ? "ARMED (AUTO ON)" : "STANDBY (MANUAL)"));
+            } catch (e) {
+                showToast("Failed to toggle auto divert", "error");
+            }
+        }
+
+        function updateAutoDivertUi(isAuto) {
+            const pill = document.getElementById("autoModePill");
+            const btn = document.getElementById("autoBtnText");
+            if (isAuto) {
+                pill.innerText = "ARMED (AUTO ON)";
+                pill.className = "status-pill status-alert";
+                btn.innerText = "STANDBY";
+            } else {
+                pill.innerText = "MANUAL STANDBY";
+                pill.className = "status-pill status-active";
+                btn.innerText = "ARM AUTO";
+            }
+        }
+
+        async function resetTrashCounter() {
+            if (!confirm("Are you sure you want to reset the trash counter?")) return;
+            try {
+                await fetch(BASE_URL + "/api/reset_trash_counter", { method: "POST" });
+                document.getElementById("trashCountDisplay").innerText = "0";
+                document.getElementById("massDisplay").innerText = "0.00 kg";
+                showToast("Trash counter reset to zero", "info");
+                logEvent("VISION", "Trash collection counter reset to 0.");
+            } catch (e) {
+                showToast("Failed to reset counter", "error");
+            }
+        }
+
+        async function emergencyPark() {
+            showToast("Emergency Park: Halting DC Motor & Closing Flap...", "warn");
+            logEvent("SYS", "EMERGENCY PARK TRIGGERED: Halting pump and resetting flap to 0°.");
+            try {
+                await setDcMotorState("OFF");
+                await forceServoClose();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Live Telemetry Poller
+        function startTelemetryPolling() {
+            if (telemetryTimer) clearInterval(telemetryTimer);
+            telemetryTimer = setInterval(pollTelemetry, 1000);
+            pollTelemetry();
+        }
+
+        async function pollTelemetry() {
+            try {
+                const res = await fetch(BASE_URL + "/api/live_telemetry");
+                if (!res.ok) throw new Error("Telemetry HTTP " + res.status);
+                const d = await res.json();
+
+                // 1. Connection status
+                document.getElementById("connDot").style.backgroundColor = "var(--color-success)";
+                document.getElementById("connLabel").innerText = "PICO CONNECTED (172.32.0.93)";
+
+                // 2. Counters & Metrics
+                document.getElementById("trashCountDisplay").innerText = d.trash_diverted || 0;
+                const mass = ((d.trash_diverted || 0) * 0.024).toFixed(2);
+                document.getElementById("massDisplay").innerText = mass + " kg";
+
+                // 3. Water Depth (HC-SR04)
+                const dist = d.ultrasonic_distance_cm || 0;
+                const depth = d.water_depth_cm || 0;
+                const pct = Math.max(0, Math.min(100, d.water_percentage || 0));
+                document.getElementById("waterDepthTxt").innerText = `${depth.toFixed(1)} cm (Distance: ${dist.toFixed(1)} cm)`;
+                document.getElementById("waterProgress").style.width = pct + "%";
+
+                // 4. Hardware PWM11 Stats
+                document.getElementById("pwmDutyTxt").innerText = `${(d.servo_duty_ns || 1000000).toLocaleString()} ns (${(d.servo_pulse_ms || 1.0).toFixed(3)} ms)`;
+
+                // 5. FPS & Latency
+                const fps = d.camera_fps || 0;
+                document.getElementById("fpsLatencyBadge").innerText = `${fps.toFixed(1)} FPS | Core: ${d.core_temp || "45°C"}`;
+
+                // 6. Confirmed Motor State from Backend
+                if (d.pump_status && !isMotorBusy) {
+                    confirmedMotorState = d.pump_status;
+                    applyMotorVisualState(d.pump_status);
+                }
+
+                // 7. Confirmed Servo Angle from Backend
+                if (d.servo_angle !== undefined && !isServoBusy) {
+                    confirmedServoAngle = d.servo_angle;
+                    updateServoVisuals(d.servo_angle);
+                    document.getElementById("servoOpStatusPill").innerText = `IDLE (${confirmedServoAngle.toFixed(1)}°)`;
+                }
+
+                // 8. Auto-divert status
+                if (d.auto_divert !== undefined) {
+                    updateAutoDivertUi(d.auto_divert);
+                }
+
+            } catch (err) {
+                document.getElementById("connDot").style.backgroundColor = "var(--color-alert)";
+                document.getElementById("connLabel").innerText = "DISCONNECTED (Retrying...)";
+            }
+        }
+    </script>
+</body>
+</html>
+'''
+
+with open("studio_dashboard.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print("Generated studio_dashboard.html successfully! Size:", len(html_content))

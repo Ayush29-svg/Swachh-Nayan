@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swachh Nayan — Luckfox Pico MIPI CSI Live Camera Feed</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --panel-bg: #161b22;
+            --border-color: #30363d;
+            --accent-cyan: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-yellow: #d29922;
+            --text-main: #c9d1d9;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            color: var(--accent-cyan);
+            font-size: 24px;
+        }
+        .badge {
+            background: rgba(63, 185, 80, 0.2);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        /* Pico IP Configuration Bar */
+        .ip-bar {
+            background: #161b22;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .ip-bar label {
+            font-weight: bold;
+            font-size: 14px;
+            color: var(--accent-cyan);
+        }
+        .ip-input {
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+            width: 220px;
+        }
+        .ip-btn {
+            background: #238636;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .ip-btn:hover { background: #2ea043; }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        .card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--accent-cyan);
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+        /* Video Stream Container */
+        .video-box {
+            position: relative;
+            width: 100%;
+            height: 380px;
+            background: #000;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .video-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .video-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--accent-green);
+            z-index: 10;
+        }
+        /* Metrics Gauges */
+        .stat-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--accent-green);
+            margin: 8px 0 4px 0;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #8b949e;
+            text-transform: uppercase;
+        }
+        /* LCD Screen Simulation */
+        .lcd-screen {
+            background: #205c20;
+            color: #98ff98;
+            font-family: "Courier New", Courier, monospace;
+            padding: 15px;
+            border-radius: 6px;
+            border: 3px solid #103010;
+            box-shadow: inset 0 0 10px #000;
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        /* Control Buttons */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .btn {
+            background: #238636;
+            color: #fff;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .btn:hover { background: #2ea043; }
+        .btn-red { background: #da3633; }
+        .btn-red:hover { background: #f85149; }
+        .btn-blue { background: #1f6feb; }
+        .btn-blue:hover { background: #388bfd; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <h1>SWACHH NAYAN — Luckfox Pico MIPI CSI Live Feed</h1>
+            <small style="color: #8b949e;">Waveshare Luckfox Pico (RV1103 NPU) | Real-time Hardware Integration</small>
+        </div>
+        <div class="badge" id="statusBadge">● CONNECTED TO PICO</div>
+    </div>
+
+    <!-- IP Configuration Bar -->
+    <div class="ip-bar">
+        <label for="picoIp">Luckfox Pico Board IP:</label>
+        <input type="text" id="picoIp" class="ip-input" value="172.32.0.93" placeholder="e.g. 172.32.0.93 or localhost">
+        <button class="ip-btn" onclick="connectPicoCamera()">CONNECT PICO MIPI CSI CAMERA</button>
+        <span style="font-size: 12px; color: #8b949e;">Default USB RNDIS IP: <b>172.32.0.93</b> or <b>localhost</b></span>
+    </div>
+
+    <div class="grid">
+        <!-- Left: Live Pico CSI Camera Feed -->
+        <div class="card">
+            <div class="card-title">LUCKFOX PICO MIPI CSI CAMERA STREAM (/dev/video11)</div>
+            <div class="video-box">
+                <div class="video-overlay" id="streamOverlay">● PICO MIPI CSI FEED: http://172.32.0.93:8080/video_feed</div>
+                <img id="picoStreamImg" src="http://172.32.0.93:8080/video_feed" alt="Luckfox Pico MIPI CSI Camera Feed" onerror="handleStreamError();" />
+            </div>
+            <p style="font-size: 12px; color: #8b949e; margin-top: 12px;">
+                * Live video feed from Luckfox Pico's onboard MIPI CSI camera module. Runs hardware NPU detection with cyan <b>Trigger Zone</b>.
+            </p>
+        </div>
+
+        <!-- Right: Telemetry & Controls -->
+        <div class="card">
+            <div class="card-title">SYSTEM TELEMETRY & METRICS</div>
+            
+            <div class="stat-group">
+                <div class="stat-card">
+                    <div class="stat-label">Total Trash Collected</div>
+                    <div class="stat-value" id="trashCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Water Distance</div>
+                    <div class="stat-value" id="waterDist" style="color: var(--accent-cyan);">12.5 cm</div>
+                </div>
+            </div>
+
+            <div class="card-title">16x2 I2C LCD SCREEN FEED</div>
+            <div class="lcd-screen" id="lcdFeed">
+                TRASH CT: 0000<br>
+                SYSTEM ACTIVE
+            </div>
+
+            <div class="card-title">HARDWARE CONTROLS</div>
+            <div class="btn-group">
+                <button class="btn btn-blue" onclick="triggerScoopCycle()">TRIGGER OVERHEAD SCOOP CYCLE</button>
+                <button class="btn" onclick="togglePump()">TOGGLE 12V PUMP RELAY (ON/OFF)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function connectPicoCamera() {
+            let ip = document.getElementById('picoIp').value.trim();
+            if (!ip) ip = "172.32.0.93";
+            
+            let streamUrl = "http://" + ip + ":8080/video_feed";
+            if (ip === "localhost" || ip === "127.0.0.1") {
+                streamUrl = "/video_feed";
+            }
+            
+            document.getElementById('picoStreamImg').src = streamUrl;
+            document.getElementById('streamOverlay').innerText = "● PICO MIPI CSI FEED: " + streamUrl;
+            document.getElementById('statusBadge').innerText = "● PICO CAM CONNECTING...";
+        }
+
+        function handleStreamError() {
+            document.getElementById('statusBadge').innerText = "● PICO CAM OFFLINE (FALLBACK STREAM)";
+            document.getElementById('statusBadge').style.borderColor = "#d29922";
+            document.getElementById('statusBadge').style.color = "#d29922";
+            // Fallback to local server stream if board not plugged in via USB yet
+            document.getElementById('picoStreamImg').src = "/video_feed";
+        }
+
+        function updateTelemetry() {
+            let ip = document.getElementById('picoIp').value.trim();
+            let statusUrl = "http://" + ip + ":8080/api/status";
+            if (ip === "localhost" || ip === "127.0.0.1") statusUrl = "/api/status";
+
+            fetch(statusUrl)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('trashCount').innerText = data.trash_count;
+                    document.getElementById('waterDist').innerText = data.water_dist_cm + " cm";
+                    document.getElementById('lcdFeed').innerHTML = 
+                        "TRASH CT: " + String(data.trash_count).padStart(4, '0') + "<br>" + data.system_status;
+                    document.getElementById('statusBadge').innerText = "● PICO CAM CONNECTED";
+                }).catch(e => console.log('Waiting for board response...'));
+        }
+
+        function triggerScoopCycle() {
+            let ip = document.getElementById('picoIp').value.trim();
+            let url = "http://" + ip + ":8080/api/trigger_scoop";
+            if (ip === "localhost" || ip === "127.0.0.1") url = "/api/trigger_scoop";
+            fetch(url, {method: 'POST'}).then(() => updateTelemetry());
+        }
+
+        function togglePump() {
+            let ip = document.getElementById('picoIp').value.trim();
+            let url = "http://" + ip + ":8080/api/toggle_pump";
+            if (ip === "localhost" || ip === "127.0.0.1") url = "/api/toggle_pump";
+            fetch(url, {method: 'POST'}).then(() => updateTelemetry());
+        }
+
+        setInterval(updateTelemetry, 1000);
+    </script>
+</body>
+</html>

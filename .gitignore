@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary / Scratch scripts & logs
+scratch_*.py
+*.log
+*.tmp
+*.bak
+dump.txt
+pump_grep_output.txt
+
+# Camera bitmap dumps and transient test captures
+*.bmp
+current_frame.jpg
+current_view.jpg
+test_current_view.jpg
+test_frame_now.jpg
+test_annotated.jpg
+right_board_crop.jpg
+back_left_col.jpg
+back_right_col.jpg
+
+# Private & Personal Invoices / Receipts
+SwachhNayan_Invoice/
+
+# OS / Editor artifacts
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+desktop.ini
+

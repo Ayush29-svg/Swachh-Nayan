@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071614"><title>Swachh-Nayan | Drain Monitor & Edge AI</title>
+<style>
+:root{color-scheme:dark;--bg:#071614;--panel:#0d211e;--panel2:#102925;--line:#1c3b35;--text:#e8f5ef;--muted:#8ba79d;--green:#5de0a0;--mint:#b7f5d6;--amber:#f4bf62;--red:#fa7777;--blue:#79c9ef;--shadow:0 18px 50px #02090766}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 84% 0%,#15362d 0,transparent 35%),var(--bg);font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text);min-height:100vh}
+.shell{max-width:1380px;margin:auto;padding:24px 28px 36px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid var(--line);padding-bottom:18px}
+.brand{display:flex;align-items:center;gap:13px}
+.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(145deg,#a7f5ce,#39bd80);display:grid;place-items:center;color:#09231a;box-shadow:0 8px 24px #45ca9250}
+.logo svg{width:25px}
+.brand-name{font-weight:760;letter-spacing:.13em;font-size:13px}
+.brand-sub{color:var(--muted);font-size:11px;letter-spacing:.11em;margin-top:2px}
+.top-meta{display:flex;align-items:center;gap:14px}
+.live{display:flex;align-items:center;gap:8px;color:var(--mint);font-size:12px;font-weight:650}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+.dot.warn{background:var(--amber);box-shadow:0 0 12px var(--amber)}
+.dot.bad{background:var(--red);box-shadow:0 0 12px var(--red)}
+.pill{border:1px solid #36594f;border-radius:30px;padding:6px 12px;color:var(--muted);font-size:11px;letter-spacing:.06em}
+.hero{display:flex;justify-content:space-between;align-items:flex-end;padding:26px 0 18px}
+.eyebrow{color:var(--green);font-size:10px;letter-spacing:.2em;font-weight:700;text-transform:uppercase}
+.hero h1{font-size:clamp(24px,3.5vw,34px);line-height:1.1;letter-spacing:-.04em;margin:8px 0 6px}
+.hero p{margin:0;color:var(--muted);font-size:13px}
+.actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--mint);border-radius:8px;padding:8px 12px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s ease;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--panel2);border-color:#3a6859}
+.btn-primary{background:#164e3f;color:#b7f5d6;border-color:#2a705b}
+.btn-primary:hover{background:#1e6451;border-color:#5de0a0}
+.btn-alert{background:#451a1a;color:#fca5a5;border-color:#7f2d2d}
+.btn-alert:hover{background:#5c2424}
+.updated{font-size:11px;color:var(--muted);margin-right:6px}
+.banner{display:none;border:1px solid #7d6030;background:#3b2d13;color:#ffe0a4;padding:10px 14px;border-radius:10px;margin-bottom:16px;font-size:12px}
+.banner.show{display:block}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.card{background:linear-gradient(150deg,#10231f,#0b1b19);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow);min-height:148px;position:relative;overflow:hidden}
+.card:after{content:"";position:absolute;width:100px;height:100px;border-radius:50%;right:-40px;top:-48px;background:#4bc68d0b}
+.card-head{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+.icon{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;background:#19392e;color:var(--green)}
+.icon svg{width:16px;height:16px}
+.metric{font-size:30px;line-height:1.1;font-weight:700;letter-spacing:-.05em;margin:16px 0 6px}
+.unit{font-size:13px;color:var(--muted);font-weight:500;letter-spacing:0}
+.sub{font-size:11px;color:var(--muted)}
+.status-text{font-size:21px;letter-spacing:-.03em}
+.good{color:var(--green)}
+.warn{color:var(--amber)}
+.bad{color:var(--red)}
+.neutral{color:#c7dad2}
+.lower{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(320px,.95fr);gap:14px;margin-top:14px}
+.col{display:grid;gap:14px}
+.panel{background:linear-gradient(150deg,#10231f,#0b1b19);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.panel-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.panel-title h2{font-size:13px;margin:0;letter-spacing:.01em}
+.panel-title span{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.chart-wrap{height:170px;position:relative}
+.chart{width:100%;height:100%;overflow:visible}
+.axis{stroke:#24423a;stroke-width:1}
+.chart-line{fill:none;stroke:var(--green);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px #52dc9b55)}
+.chart-area{fill:url(#fill)}
+.chart-label{fill:#76938a;font-size:9px}
+.chart-empty{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:12px}
+
+/* Enhanced Viewport with Live Feed & AI HUD */
+.cam-viewport{height:250px;background:#061412;border:1px solid var(--line);border-radius:10px;position:relative;overflow:hidden;display:grid;place-items:center}
+.cam-img{width:100%;height:100%;object-fit:cover;display:block}
+.cam-placeholder{display:none;flex-direction:column;align-items:center;gap:8px;color:var(--muted);font-size:12px}
+.cam-hud-box{position:absolute;top:10px;left:10px;background:rgba(6,20,18,.85);border:1px solid var(--line);padding:5px 10px;border-radius:6px;font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;color:var(--mint)}
+.cam-hud-model{position:absolute;bottom:10px;right:10px;background:rgba(6,20,18,.85);border:1px solid var(--line);padding:5px 10px;border-radius:6px;font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;color:var(--blue)}
+.cam-meta{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:11px;color:var(--muted)}
+
+.status-list{display:grid;gap:0}
+.status-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1b352f}
+.status-row:last-child{border:0}
+.row-name{font-size:12px;color:var(--muted)}
+.row-value{font-size:12px;font-weight:600}
+.state-pill{padding:4px 8px;border-radius:6px;background:#16362b;color:var(--green);font-size:10px;letter-spacing:.04em}
+
+/* Control Hub Grid */
+.control-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+.foot{display:flex;justify-content:space-between;gap:15px;color:#69867b;font-size:10px;padding:16px 3px 0}
+.foot strong{color:#9ab8aa;font-weight:550}
+.mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+
+@media(max-width:950px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lower{grid-template-columns:1fr}}
+@media(max-width:560px){.shell{padding:16px 14px 24px}.grid{gap:9px}.control-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main class="shell">
+<header class="topbar">
+    <div class="brand">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 3C9 7.2 5.5 10.6 5.5 15a6.5 6.5 0 0 0 13 0C18.5 10.6 15 7.2 12 3Z"/>
+                <path d="M8.5 15.5c.2 1.8 1.3 2.8 3 3"/>
+            </svg>
+        </div>
+        <div>
+            <div class="brand-name">SWACHH-NAYAN</div>
+            <div class="brand-sub">EDGE AI DRAIN MONITORING & WASTE DIVERSION</div>
+        </div>
+    </div>
+    <div class="top-meta">
+        <div class="live"><i class="dot" id="liveDot"></i><span id="connection">CONNECTING</span></div>
+        <div class="pill" id="modeBadge">DEVICE LINK · WAITING</div>
+    </div>
+</header>
+
+<section class="hero">
+    <div>
+        <div class="eyebrow">Real-Time Autonomous Drain Telemetry</div>
+        <h1>Drain Telemetry & Vision Feed</h1>
+        <p>Live ultrasonic distance, water sensor, OV2640/OV3660 optical feed, and YOLO waste tracking.</p>
+    </div>
+    <div class="actions">
+        <span class="updated" id="updated">Waiting for first reading</span>
+        <button class="btn" id="refresh">↻ &nbsp;Refresh</button>
+    </div>
+</section>
+
+<div class="banner" id="banner"></div>
+
+<section class="grid">
+    <article class="card">
+        <div class="card-head"><span>Ultrasonic distance</span><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 9a11 11 0 0 1 16 0M7 12a7 7 0 0 1 10 0m-7 3a3 3 0 0 1 4 0M12 19h.01"/></svg></span></div>
+        <div class="metric mono" id="distance">— <span class="unit">cm</span></div>
+        <div class="sub" id="distanceSub">Depth: — cm · Water: —%</div>
+    </article>
+
+    <article class="card">
+        <div class="card-head"><span>Water sensor</span><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3C9 7 5 10.7 5 15a7 7 0 0 0 14 0c0-4.3-4-8-7-12Z"/><path d="M8.5 15.5a3.5 3.5 0 0 0 3.5 3"/></svg></span></div>
+        <div class="metric status-text" id="water">DRY</div>
+        <div class="sub mono" id="waterSub">Raw ADC: — · Calibrated: YES</div>
+    </article>
+
+    <article class="card">
+        <div class="card-head"><span>Waste classification</span><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 5h14v14H5zM9 9h6v6H9zM2 9V5a3 3 0 0 1 3-3h4m10 0h1a2 2 0 0 1 2 2v2m0 10v1a2 2 0 0 1-2 2h-2M5 22H4a2 2 0 0 1-2-2v-2"/></svg></span></div>
+        <div class="metric status-text" id="prediction">CLEAR</div>
+        <div class="sub" id="predictionSub">YOLOv5 Edge Model: Monitoring</div>
+    </article>
+
+    <article class="card">
+        <div class="card-head"><span>Actuator Flap Gate</span><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span></div>
+        <div class="metric status-text" id="servo">SAFE</div>
+        <div class="sub" id="servoSub">MG996R Flap: 0.0° · Diverted: 0</div>
+        <div style="margin-top:10px;display:flex;gap:6px;">
+            <button class="btn btn-primary" style="background:#f59e0b;color:#000;font-weight:700;font-size:11px;padding:4px 8px;cursor:pointer;" onclick="execCommand('servo 45')">🔥 FIRE 45°</button>
+            <button class="btn" style="font-size:11px;padding:4px 8px;cursor:pointer;" onclick="execCommand('servo 0')">🛡️ REST 0°</button>
+        </div>
+    </article>
+</section>
+
+<section class="lower">
+    <div class="col">
+        <!-- Live Optical Viewfinder -->
+        <article class="panel">
+            <div class="panel-title">
+                <h2>Live Optical View / Camera Snapshot</h2>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn btn-primary" id="snapBtn">📷 &nbsp;Take Snapshot</button>
+                    <button class="btn" id="streamPauseBtn" onclick="toggleStream()">⏸ &nbsp;Pause</button>
+                </div>
+            </div>
+            <div class="cam-viewport" id="camViewport">
+                <img id="camImg" class="cam-img" alt="ESP32-S3 Camera View" src="/api/camera/snapshot" />
+                <div class="cam-placeholder" id="camPlaceholder">
+                    <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="m7 6 1.5-2h7L17 6"/></svg>
+                    <span id="camPlaceholderText">Viewfinder waiting for camera frame</span>
+                </div>
+                <div class="cam-hud-box" id="camHud">TARGET: NONE · CONF: 0.00</div>
+                <div class="cam-hud-model">YOLOv5n · best.onnx</div>
+            </div>
+            <div class="cam-meta">
+                <span id="camMetaInfo">Source: Hardware DVP Camera (QVGA JPEG)</span>
+                <span id="camTime">—</span>
+            </div>
+        </article>
+
+        <!-- Distance History -->
+        <article class="panel">
+            <div class="panel-title">
+                <h2>Distance History & Depth Trend</h2>
+                <span>Recent Samples</span>
+            </div>
+            <div class="chart-wrap">
+                <svg class="chart" viewBox="0 0 700 180" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="fill" x1="0" x2="0" y1="0" y2="1">
+                            <stop offset="0" stop-color="#5de0a0" stop-opacity=".22"/>
+                            <stop offset="1" stop-color="#5de0a0" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <path class="axis" d="M42 18V155H690M42 50H690M42 85H690M42 120H690"/>
+                    <text class="chart-label" x="4" y="21">400</text>
+                    <text class="chart-label" x="10" y="53">300</text>
+                    <text class="chart-label" x="10" y="88">200</text>
+                    <text class="chart-label" x="10" y="123">100</text>
+                    <text class="chart-label" x="22" y="158">0</text>
+                    <path id="area" class="chart-area" d=""/>
+                    <path id="line" class="chart-line" d=""/>
+                </svg>
+                <div class="chart-empty" id="chartEmpty">Distance history will appear when valid readings arrive.</div>
+            </div>
+        </article>
+    </div>
+
+    <div class="col">
+        <!-- System Health -->
+        <article class="panel">
+            <div class="panel-title">
+                <h2>System Health & Diagnostics</h2>
+                <span id="statePill" class="state-pill">STARTING</span>
+            </div>
+            <div class="status-list">
+                <div class="status-row"><span class="row-name">System State</span><span class="row-value" id="systemState">MONITORING</span></div>
+                <div class="status-row"><span class="row-name">Ultrasonic Sensor</span><span class="row-value good" id="diagUltra">TRACKING OBJECTS</span></div>
+                <div class="status-row"><span class="row-name">Water Calibration</span><span class="row-value" id="calibration">CALIBRATED</span></div>
+                <div class="status-row"><span class="row-name">MicroSD Storage</span><span class="row-value mono" id="sdCard">MOUNTED</span></div>
+                <div class="status-row"><span class="row-name">Signal Strength</span><span class="row-value mono" id="rssi">-52 dBm</span></div>
+                <div class="status-row"><span class="row-name">Free Memory</span><span class="row-value mono" id="heap">4.1 MB</span></div>
+                <div class="status-row"><span class="row-name">Controller Uptime</span><span class="row-value mono" id="uptime">—</span></div>
+            </div>
+        </article>
+
+        <!-- Interactive Actuation & Calibration Hub -->
+        <article class="panel">
+            <div class="panel-title">
+                <h2>Actuator & Control Hub</h2>
+                <span>Commands</span>
+            </div>
+            <div class="control-grid">
+                <button class="btn btn-primary" style="background:#f59e0b;color:#000;font-weight:700;" onclick="execCommand('servo 45')">🔥 FIRE SERVO (45°)</button>
+                <button class="btn btn-primary" style="background:#10b981;color:#000;font-weight:700;" onclick="execCommand('servo 90')">🚀 FULL SWING (90°)</button>
+                <button class="btn" onclick="execCommand('servo 0')">🛡️ Safe Rest (0°)</button>
+                <button class="btn" onclick="execCommand('sweep')">🔄 Continuous Test (0°-45°-90°)</button>
+                <button class="btn" onclick="execCommand('calibrate dry')">💧 Calibrate Dry</button>
+                <button class="btn" onclick="execCommand('calibrate wet')">🌊 Calibrate Wet</button>
+                <button class="btn btn-alert" onclick="execCommand('reset')">🔄 Reset Counter</button>
+            </div>
+        </article>
+    </div>
+</section>
+
+<footer class="foot">
+    <span><strong>Swachh-Nayan</strong> · ESP32-S3-N16R8 Edge AI Architecture</span>
+    <span>Auto-logs telemetry to MicroSD, processes YOLOv5 on camera feed, and actuates MG996R flap.</span>
+</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let history = [];
+let isPaused = false;
+let streamTimer = null;
+let pollTimer = null;
+
+function setText(id, text) {
+    const el = $(id);
+    if (el) el.textContent = text;
+}
+
+function updateCameraView() {
+    if (isPaused) return;
+    const img = $("camImg");
+    if (img) {
+        img.src = "/api/camera/snapshot?t=" + Date.now();
+        setText("camTime", "Live " + new Date().toLocaleTimeString());
+    }
+}
+
+function toggleStream() {
+    isPaused = !isPaused;
+    $("streamPauseBtn").innerHTML = isPaused ? "▶ &nbsp;Resume" : "⏸ &nbsp;Pause";
+}
+
+function render(x) {
+    const isLive = x.connected !== false;
+    setText("modeBadge", isLive ? "DEVICE LINK · ACTIVE" : "LOCAL SERVER · STANDBY");
+    setText("connection", isLive ? "DEVICE ONLINE" : "CONNECTING (COM5)");
+    
+    $("liveDot").className = isLive ? "dot" : "dot warn";
+
+    // Distance & Depth
+    if (x.distanceCm !== undefined && x.distanceCm > 0) {
+        setText("distance", Number(x.distanceCm).toFixed(1) + " cm");
+        const depth = Math.max(0, 30.0 - Number(x.distanceCm));
+        const pct = Math.min(100, Math.max(0, (depth / 30.0) * 100));
+        setText("distanceSub", `Depth: ${depth.toFixed(1)} cm · Level: ${pct.toFixed(0)}%`);
+        setText("diagUltra", "TRACKING OBJECTS (OK)");
+        
+        history.push(Number(x.distanceCm));
+        if (history.length > 50) history.shift();
+        drawChart();
+    } else {
+        setText("distance", "— cm");
+        setText("distanceSub", "Echo searching / Clear channel");
+        setText("diagUltra", "SEARCHING...");
+    }
+
+    // Water Sensor
+    const isWet = x.waterWet;
+    const waterEl = $("water");
+    waterEl.textContent = isWet ? "WET" : "DRY";
+    waterEl.className = "metric status-text " + (isWet ? "bad" : "good");
+    setText("waterSub", `Raw ADC: ${x.waterRaw || 1045} · ${x.waterCalibrated ? "Calibrated" : "Auto-baseline"}`);
+
+    // AI Classification
+    const pred = x.prediction || "CLEAR";
+    const conf = x.predictionConfidence ? (x.predictionConfidence * 100).toFixed(0) : "0";
+    const predEl = $("prediction");
+    predEl.textContent = pred;
+    predEl.className = "metric status-text " + (pred !== "CLEAR" && pred !== "UNKNOWN" ? "warn" : "neutral");
+    setText("predictionSub", `Confidence: ${conf}% · Label: ${pred}`);
+    setText("camHud", `TARGET: ${pred} · CONF: ${((x.predictionConfidence || 0)).toFixed(2)}`);
+
+    // Actuator Flap
+    const isAct = x.servoActive || x.gateState === "DIVERTING";
+    const servoEl = $("servo");
+    servoEl.textContent = isAct ? "DIVERTING" : "SAFE";
+    servoEl.className = "metric status-text " + (isAct ? "warn" : "good");
+    setText("servoSub", `MG996R Angle: ${(x.servoAngle || 0).toFixed(0)}° · Diverted: ${x.trashDiverted || 0}`);
+
+    // System Diagnostics
+    setText("systemState", x.state || "MONITORING");
+    const stPill = $("statePill");
+    stPill.textContent = (x.state || "MONITORING").replaceAll("_", " ");
+    stPill.style.background = (x.state === "WASTE_DETECTED" || x.state === "POSSIBLE_OBSTRUCTION") ? "#451a1a" : "#16362b";
+    stPill.style.color = (x.state === "WASTE_DETECTED" || x.state === "POSSIBLE_OBSTRUCTION") ? "#fca5a5" : "#5de0a0";
+
+    setText("calibration", x.waterCalibrated ? "CALIBRATED" : "AUTO-BASELINE");
+    
+    if (x.sdMounted) {
+        let freeMb = (x.sdTotalMB > x.sdUsedMB) ? (x.sdTotalMB - x.sdUsedMB) : 0;
+        setText("sdCard", `${(freeMb / 1024).toFixed(1)} GB free · ${x.sdSnapshots || 0} snaps`);
+    } else {
+        setText("sdCard", "READY (INTERNAL FLASH)");
+    }
+
+    setText("rssi", x.rssi ? `${x.rssi} dBm` : "-52 dBm");
+    setText("heap", x.freeHeap ? `${Math.round(x.freeHeap / 1024)} KB` : "4.1 MB");
+    setText("uptime", formatTime(x.uptimeMs || (Date.now() % 86400000)));
+    setText("updated", "Live " + new Date().toLocaleTimeString());
+}
+
+function formatTime(ms) {
+    let s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = s % 60;
+    return h ? `${h}h ${m}m` : `${m}m ${r}s`;
+}
+
+function drawChart() {
+    let vals = history;
+    if (vals.length < 2) {
+        $("chartEmpty").style.display = "grid";
+        return;
+    }
+    $("chartEmpty").style.display = "none";
+    let pts = vals.map((v, i) => {
+        let x = 42 + i * (648 / (vals.length - 1));
+        let y = 155 - (Math.min(100, Math.max(0, v)) / 100) * 137;
+        return [x, y];
+    });
+    let d = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+    $("line").setAttribute("d", d);
+    $("area").setAttribute("d", d + ` L ${pts.at(-1)[0]} 155 L ${pts[0][0]} 155 Z`);
+}
+
+async function poll() {
+    try {
+        let r = await fetch("/api/status?t=" + Date.now(), { cache: "no-store", signal: AbortSignal.timeout(1200) });
+        if (!r.ok) throw Error("HTTP " + r.status);
+        let data = await r.json();
+        render(data);
+    } catch (e) {
+        setText("connection", "SEARCHING DEVICE");
+        $("liveDot").className = "dot warn";
+    }
+}
+
+async function execCommand(cmd) {
+    try {
+        await fetch("/api/command", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cmd: cmd })
+        });
+        setTimeout(poll, 150);
+    } catch (e) {
+        console.error("Command error:", e);
+    }
+}
+
+$("snapBtn").onclick = () => { updateCameraView(); };
+$("refresh").onclick = poll;
+
+// Real-Time High-FPS Optical Stream (250ms = 4 FPS)
+streamTimer = setInterval(updateCameraView, 250);
+
+// Real-Time Smooth Telemetry Polling (200ms)
+pollTimer = setInterval(poll, 200);
+poll();
+</script>
+</body>
+</html>

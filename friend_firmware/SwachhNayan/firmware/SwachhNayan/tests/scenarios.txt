@@ -1,0 +1,9 @@
+Serial at 115200 baud. Run `selftest` for deterministic in-firmware decision assertions; each test must print PASS.
+scenario safe         EXPECTED MONITORING; actuator request NO
+scenario waste        EXPECTED MONITORING; mock prediction explicitly ignored by live decision engine
+scenario camera_fail  EXPECTED CAMERA_FAULT; actuator request NO
+scenario low_conf     EXPECTED MONITORING; prediction UNKNOWN by threshold; actuator request NO
+scenario sensor_fault EXPECTED SENSOR_FAULT; actuator request NO
+scenario wet          EXPECTED MONITORING; water WET (simulated)
+scenario obstruction EXPECTED POSSIBLE_OBSTRUCTION after 3 repeated mock samples; actuator request NO
+reset                 EXPECTED MONITORING

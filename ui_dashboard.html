@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swachh-Nayan | Edge AI Drain Monitoring Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #06110f;
+            --surface-1: #0a1b18;
+            --surface-2: #102924;
+            --surface-3: #183b34;
+            --border: #1d453d;
+            --border-hover: #3dd896;
+            --text-primary: #e6f7f0;
+            --text-secondary: #90b3a7;
+            --text-muted: #5e8276;
+            --accent-green: #34d399;
+            --accent-mint: #a7f3d0;
+            --accent-cyan: #38bdf8;
+            --accent-amber: #fbbf24;
+            --accent-red: #f87171;
+            --shadow-card: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 1px 1px rgba(255, 255, 255, 0.05);
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', Consolas, monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-sans);
+            background: radial-gradient(circle at 80% 0%, #12382f 0%, var(--bg-base) 45%);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 20px 28px;
+        }
+
+        .container {
+            max-width: 1540px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        /* Top Bar */
+        .topbar {
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-card);
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #34d399, #059669);
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.35);
+            color: #06110f;
+        }
+        .logo-icon svg { width: 26px; height: 26px; }
+        .brand-text h1 { font-size: 17px; font-weight: 800; letter-spacing: 0.1em; color: var(--accent-mint); }
+        .brand-text p { font-size: 11px; color: var(--text-muted); letter-spacing: 0.08em; }
+
+        .meta-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .badge {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+        }
+        .dot.connecting { background: var(--accent-amber); box-shadow: 0 0 10px var(--accent-amber); }
+        .dot.offline { background: var(--accent-red); box-shadow: 0 0 10px var(--accent-red); }
+
+        /* Metric Grid */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        .metric-card {
+            background: linear-gradient(145deg, var(--surface-1), var(--surface-2));
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px 20px;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+        .metric-card:hover { border-color: var(--border-hover); }
+        .card-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+        }
+        .card-value {
+            font-size: 32px;
+            font-weight: 800;
+            font-family: var(--font-mono);
+            margin: 12px 0 6px;
+            color: var(--text-primary);
+        }
+        .card-sub {
+            font-size: 11.5px;
+            color: var(--text-secondary);
+        }
+        .val-unit { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+
+        /* Status Colors */
+        .status-good { color: var(--accent-green) !important; }
+        .status-warn { color: var(--accent-amber) !important; }
+        .status-alert { color: var(--accent-red) !important; }
+        .status-info { color: var(--accent-cyan) !important; }
+
+        /* Main Workspace Split */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1.65fr 1fr;
+            gap: 18px;
+        }
+        .left-col, .right-col {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .panel {
+            background: linear-gradient(150deg, var(--surface-1), var(--surface-2));
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: var(--shadow-card);
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .panel-header h2 {
+            font-size: 13.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--accent-mint);
+        }
+
+        /* Camera Optical Viewfinder */
+        .viewport-box {
+            position: relative;
+            background: #020706;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            height: 380px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .cam-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .hud-overlay {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(6, 17, 15, 0.85);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-family: var(--font-mono);
+            color: var(--accent-green);
+        }
+        .hud-ai-model {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            background: rgba(6, 17, 15, 0.85);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-family: var(--font-mono);
+            color: var(--accent-cyan);
+        }
+
+        /* Distance SVG History Chart */
+        .chart-box {
+            height: 190px;
+            position: relative;
+            margin-top: 8px;
+        }
+        .chart-svg {
+            width: 100%;
+            height: 100%;
+        }
+        .chart-line {
+            fill: none;
+            stroke: var(--accent-green);
+            stroke-width: 2.5;
+            stroke-linecap: round;
+        }
+        .chart-area {
+            fill: url(#chartGrad);
+        }
+
+        /* Diagnostics & Telemetry Rows */
+        .diag-table {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .diag-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .diag-key { color: var(--text-muted); font-weight: 500; }
+        .diag-val { font-family: var(--font-mono); font-weight: 700; color: var(--text-primary); }
+
+        /* Action Buttons */
+        .btn-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .btn {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--accent-mint);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn:hover {
+            background: var(--surface-3);
+            border-color: var(--border-hover);
+            color: #fff;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: #06110f;
+            border: none;
+            font-weight: 700;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #10b981, #34d399);
+        }
+        .btn-alert {
+            background: #7f1d1d;
+            border-color: #ef4444;
+            color: #fca5a5;
+        }
+        .btn-alert:hover {
+            background: #991b1b;
+            color: #fff;
+        }
+
+        /* 16x2 LCD Mirror */
+        .lcd-mirror {
+            background: #112d1b;
+            border: 2px solid #205c38;
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-family: var(--font-mono);
+            color: #79f29d;
+            font-size: 14px;
+            letter-spacing: 0.15em;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+            margin-top: 10px;
+        }
+        .lcd-line { height: 20px; white-space: pre; }
+
+        @media (max-width: 1024px) {
+            .metric-grid { grid-template-columns: repeat(2, 1fr); }
+            .workspace-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Top Bar -->
+    <header class="topbar">
+        <div class="brand">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 3C9 7.2 5.5 10.6 5.5 15a6.5 6.5 0 0 0 13 0C18.5 10.6 15 7.2 12 3Z"/>
+                    <path d="M8.5 15.5c.2 1.8 1.3 2.8 3 3"/>
+                </svg>
+            </div>
+            <div class="brand-text">
+                <h1>SWACHH-NAYAN</h1>
+                <p>AI SMART DRAIN MONITORING & TRASH DIVERSION SYSTEM</p>
+            </div>
+        </div>
+        <div class="meta-group">
+            <div class="badge">
+                <span class="dot" id="serialDot"></span>
+                <span id="serialStatus">LINKING ESP32-S3 (COM5)</span>
+            </div>
+            <div class="badge">
+                <span class="dot" id="systemDot"></span>
+                <span id="systemState">INITIALIZING</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 4 High-Priority Sensor Metric Cards -->
+    <section class="metric-grid">
+        <div class="metric-card">
+            <div class="card-title">
+                <span>Ultrasonic Distance</span>
+                <span>HC-SR04</span>
+            </div>
+            <div class="card-value" id="valDistance">— <span class="val-unit">cm</span></div>
+            <div class="card-sub" id="subDistance">Water Depth: — cm (—%)</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="card-title">
+                <span>Water Moisture</span>
+                <span>ADS1115 (0x48)</span>
+            </div>
+            <div class="card-value" id="valWater">DRY</div>
+            <div class="card-sub" id="subWater">ADC Raw: — · Calibrated: YES</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="card-title">
+                <span>Waste AI Classification</span>
+                <span>YOLOv5n Edge ONNX</span>
+            </div>
+            <div class="card-value status-info" id="valAI">MONITORING</div>
+            <div class="card-sub" id="subAI">Confidence: — · Confirmed: 0</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="card-title">
+                <span>MicroSD Card</span>
+                <span>1-Bit SD_MMC</span>
+            </div>
+            <div class="card-value status-good" id="valSD">MOUNTED</div>
+            <div class="card-sub" id="subSD">Free: — GB · Snaps: 0</div>
+        </div>
+    </section>
+
+    <!-- Main Workspace Split -->
+    <div class="workspace-grid">
+        <!-- Left: Live Optical Viewport & Distance History Chart -->
+        <div class="left-col">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Live Optical Viewfinder & AI Waste Detection</h2>
+                    <span class="badge" id="camFPSBadge">15 FPS · OV2640 / OV3660</span>
+                </div>
+                <div class="viewport-box">
+                    <img id="liveCamFeed" class="cam-feed" src="/api/camera/snapshot" alt="Live Camera Feed">
+                    <div class="hud-overlay" id="camHud">TARGET: NONE · CONF: 0.00</div>
+                    <div class="hud-ai-model">MODEL: best.onnx (YOLOv5)</div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Distance History & Depth Trend</h2>
+                    <span class="badge">Live 60-Sample Buffer</span>
+                </div>
+                <div class="chart-box">
+                    <svg class="chart-svg" viewBox="0 0 600 180" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id="chartGrad" x1="0" x2="0" y1="0" y2="1">
+                                <stop offset="0%" stop-color="#34d399" stop-opacity="0.35"/>
+                                <stop offset="100%" stop-color="#34d399" stop-opacity="0.0"/>
+                            </linearGradient>
+                        </defs>
+                        <path id="chartAreaPath" class="chart-area" d=""/>
+                        <path id="chartLinePath" class="chart-line" d=""/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Actuators, Diagnostics, 16x2 LCD Mirror & Controls -->
+        <div class="right-col">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Actuator & Servo Flap Hub</h2>
+                    <span class="badge" id="gateStateBadge">GATE: NORMAL</span>
+                </div>
+                <div class="diag-table">
+                    <div class="diag-row">
+                        <span class="diag-key">MG996R Flap Position</span>
+                        <span class="diag-val" id="valServoAngle">0.0° (Rest)</span>
+                    </div>
+                    <div class="diag-row">
+                        <span class="diag-key">12V Drainage Pump</span>
+                        <span class="diag-val" id="valPumpRelay">OFF</span>
+                    </div>
+                    <div class="diag-row">
+                        <span class="diag-key">Diverted Trash Items</span>
+                        <span class="diag-val status-good" id="valTrashCount">0</span>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="triggerDivert()">⚡ Manual Divert</button>
+                    <button class="btn" onclick="returnSafe()">🛡️ Return Safe</button>
+                    <button class="btn" onclick="togglePump()">🌊 Toggle 12V Pump</button>
+                    <button class="btn" onclick="takeSnapshot()">📷 Take Snapshot</button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>16x2 Character I²C LCD Mirror</h2>
+                    <span class="badge">PCF8574 (0x27)</span>
+                </div>
+                <div class="lcd-mirror">
+                    <div class="lcd-line" id="lcdL1">SWACHH-NAYAN S3 </div>
+                    <div class="lcd-line" id="lcdL2">MONITOR ACTIVE  </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>System Diagnostics & Hardware Health</h2>
+                    <span class="badge" id="wifiRssiBadge">RSSI: -52 dBm</span>
+                </div>
+                <div class="diag-table">
+                    <div class="diag-row">
+                        <span class="diag-key">Free Heap Memory</span>
+                        <span class="diag-val" id="diagHeap">4.12 MB</span>
+                    </div>
+                    <div class="diag-row">
+                        <span class="diag-key">Firmware Controller Mode</span>
+                        <span class="diag-val" id="diagMode">EDGE HARDWARE</span>
+                    </div>
+                    <div class="diag-row">
+                        <span class="diag-key">Controller Uptime</span>
+                        <span class="diag-val" id="diagUptime">00:00:00</span>
+                    </div>
+                    <div class="diag-row">
+                        <span class="diag-key">Alert Snaps on SD</span>
+                        <span class="diag-val" id="diagSnaps">0 stored</span>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn" onclick="calibrateSensor('dry')">Calibrate Dry</button>
+                    <button class="btn" onclick="calibrateSensor('wet')">Calibrate Wet</button>
+                    <button class="btn" onclick="simulateScenario('waste')">Simulate Waste</button>
+                    <button class="btn btn-alert" onclick="resetCounter()">Reset Counter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const historyBuf = [];
+    const MAX_POINTS = 60;
+
+    async function fetchTelemetry() {
+        try {
+            const res = await fetch('/api/status?t=' + Date.now());
+            if (!res.ok) return;
+            const data = await res.json();
+            updateUI(data);
+        } catch (e) {
+            document.getElementById('serialDot').className = 'dot offline';
+            document.getElementById('serialStatus').innerText = 'OFFLINE · RETRYING';
+        }
+    }
+
+    function updateUI(d) {
+        // Serial & Link
+        document.getElementById('serialDot').className = d.connected ? 'dot' : 'dot connecting';
+        document.getElementById('serialStatus').innerText = d.connected ? 'CONNECTED (COM5)' : 'SEARCHING PORT';
+
+        // State Pill
+        const st = d.state || 'MONITORING';
+        document.getElementById('systemState').innerText = st.replaceAll('_', ' ');
+        document.getElementById('systemDot').className = (st === 'WASTE_DETECTED' || st === 'CRITICAL_FLOOD') ? 'dot offline' : 'dot';
+
+        // Distance Card
+        if (d.distanceCm !== undefined && d.distanceCm > 0) {
+            document.getElementById('valDistance').innerHTML = `${d.distanceCm.toFixed(1)} <span class="val-unit">cm</span>`;
+            const depth = Math.max(0, 30.0 - d.distanceCm);
+            const pct = Math.min(100, Math.max(0, (depth / 30.0) * 100));
+            document.getElementById('subDistance').innerText = `Water Depth: ${depth.toFixed(1)} cm (${pct.toFixed(0)}%)`;
+            pushDistance(d.distanceCm);
+        }
+
+        // Water Card
+        const isWet = d.waterWet;
+        const waterValEl = document.getElementById('valWater');
+        waterValEl.innerText = isWet ? 'WET / DETECTED' : 'DRY';
+        waterValEl.className = 'card-value ' + (isWet ? 'status-alert' : 'status-good');
+        document.getElementById('subWater').innerText = `ADC Raw: ${d.waterRaw || 1024} · Calibrated: ${d.waterCalibrated ? 'YES' : 'NO'}`;
+
+        // AI Classification Card
+        const aiEl = document.getElementById('valAI');
+        aiEl.innerText = d.prediction || 'CLEAR';
+        const conf = ((d.predictionConfidence || 0) * 100).toFixed(0);
+        document.getElementById('subAI').innerText = `Confidence: ${conf}% · Label: ${d.prediction || 'NONE'}`;
+        document.getElementById('camHud').innerText = `TARGET: ${d.prediction || 'NONE'} · CONF: ${(d.predictionConfidence || 0).toFixed(2)}`;
+
+        // MicroSD
+        const freeGb = ((d.sdTotalMB - d.sdUsedMB) / 1024).toFixed(1);
+        document.getElementById('valSD').innerText = d.sdMounted ? 'MOUNTED' : 'NO CARD';
+        document.getElementById('subSD').innerText = `Free: ${d.sdMounted ? freeGb + ' GB' : '0 GB'} · Snaps: ${d.sdSnapshots || 0}`;
+
+        // Actuators
+        document.getElementById('valServoAngle').innerText = `${(d.servoAngle || 0).toFixed(1)}° (${d.servoActive ? 'DIVERTING' : 'REST'})`;
+        document.getElementById('gateStateBadge').innerText = `GATE: ${d.servoActive ? 'DIVERTING' : 'NORMAL'}`;
+        document.getElementById('valPumpRelay').innerText = d.pumpStatus || 'OFF';
+        document.getElementById('valTrashCount').innerText = d.trashCount || 0;
+
+        // LCD Mirror
+        if (d.lcdL1) document.getElementById('lcdL1').innerText = d.lcdL1;
+        if (d.lcdL2) document.getElementById('lcdL2').innerText = d.lcdL2;
+
+        // Diagnostics
+        if (d.freeHeap) document.getElementById('diagHeap').innerText = `${(d.freeHeap / (1024 * 1024)).toFixed(2)} MB`;
+        if (d.uptimeSec) {
+            const h = Math.floor(d.uptimeSec / 3600).toString().padStart(2, '0');
+            const m = Math.floor((d.uptimeSec % 3600) / 60).toString().padStart(2, '0');
+            const s = Math.floor(d.uptimeSec % 60).toString().padStart(2, '0');
+            document.getElementById('diagUptime').innerText = `${h}:${m}:${s}`;
+        }
+        if (d.sdSnapshots !== undefined) document.getElementById('diagSnaps').innerText = `${d.sdSnapshots} stored`;
+        if (d.rssi) document.getElementById('wifiRssiBadge').innerText = `RSSI: ${d.rssi} dBm`;
+    }
+
+    function pushDistance(cm) {
+        historyBuf.push(cm);
+        if (historyBuf.length > MAX_POINTS) historyBuf.shift();
+        renderChart();
+    }
+
+    function renderChart() {
+        if (historyBuf.length < 2) return;
+        const w = 600, h = 180;
+        const maxVal = 50.0, minVal = 0.0;
+        const step = w / (MAX_POINTS - 1);
+
+        let dLine = '';
+        let dArea = `M 0,${h} `;
+
+        historyBuf.forEach((v, i) => {
+            const clamped = Math.max(minVal, Math.min(maxVal, v));
+            const y = h - ((clamped - minVal) / (maxVal - minVal)) * (h - 20) - 10;
+            const x = i * step;
+            dLine += (i === 0 ? `M ${x},${y} ` : `L ${x},${y} `);
+            dArea += `L ${x},${y} `;
+        });
+
+        const lastX = (historyBuf.length - 1) * step;
+        dArea += `L ${lastX},${h} Z`;
+
+        document.getElementById('chartLinePath').setAttribute('d', dLine);
+        document.getElementById('chartAreaPath').setAttribute('d', dArea);
+    }
+
+    // Refresh Camera Snapshot Frame
+    setInterval(() => {
+        const img = document.getElementById('liveCamFeed');
+        img.src = '/api/camera/snapshot?t=' + Date.now();
+    }, 250);
+
+    // Continuous Telemetry Loop (200ms)
+    setInterval(fetchTelemetry, 200);
+
+    // Actuator & Sensor Control APIs
+    async function triggerDivert() {
+        await fetch('/api/actuator/divert', { method: 'POST' });
+    }
+    async function returnSafe() {
+        await fetch('/api/actuator/safe', { method: 'POST' });
+    }
+    async function togglePump() {
+        await fetch('/api/actuator/pump_toggle', { method: 'POST' });
+    }
+    async function takeSnapshot() {
+        await fetch('/api/camera/manual_snap', { method: 'POST' });
+    }
+    async function calibrateSensor(mode) {
+        await fetch('/api/calibrate?mode=' + mode, { method: 'POST' });
+    }
+    async function simulateScenario(name) {
+        await fetch('/api/scenario?name=' + name, { method: 'POST' });
+    }
+    async function resetCounter() {
+        await fetch('/api/reset_counter', { method: 'POST' });
+    }
+</script>
+</body>
+</html>
